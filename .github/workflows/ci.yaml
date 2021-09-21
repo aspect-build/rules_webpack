@@ -31,6 +31,8 @@ jobs:
         with:
           path: '~/.cache/bazel-repo'
           key: bazel-repo
+      - name: npm install
+        run: bazel run @node16_host//:npm install
       - name: bazel test //...
         env:
           # Bazelisk will download bazel to here

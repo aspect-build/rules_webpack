@@ -1,30 +1,24 @@
+load("//webpack:defs.bzl", "webpack_bundle")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 
-write_file(
-    name = "mock_webpack",
+webpack_bundle(
+    name = "bundle",
     out = "bundle.js",
-    content = ["""(()=>{"use strict";console.log("hmm")})();"""],
+    args = [
+        "./$(execpath index.js)",
+        "--mode",
+        "production",
+        "-o",
+        "$(RULEDIR)",
+        "--output-filename",
+        "bundle.js",
+    ],
+    data = [
+        "index.js",
+        "module.js",
+    ],
 )
-
-# TODO: make the rule actually work
-#  webpack_bundle(
-#      name = "bundle",
-#      args = [
-#          "./$(execpath index.js)",
-#          "--mode",
-#          "production",
-#          "-o",
-#          "$(RULEDIR)",
-#          "--output-filename",
-#          "bundle.js",
-#      ],
-#      data = [
-#          "index.js",
-#          "module.js",
-#      ],
-#      out = "bundle.js",
-#  )
 
 write_file(
     name = "update_gen",
@@ -44,8 +38,8 @@ sh_binary(
 diff_test(
     name = "test",
     failure_message = """to accept the new expected file:
-         
-         bazel run //tests/simple:update""",
+        
+        bazel run //tests/simple:update""",
     file1 = "expected.js_",
     file2 = "bundle.js",
 )

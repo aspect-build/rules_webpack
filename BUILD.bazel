@@ -1,5 +1,11 @@
 load("@rules_pkg//:pkg.bzl", "pkg_tar")
 
+filegroup(
+    name = "deps",
+    srcs = glob(["node_modules/**"]),
+    visibility = ["//visibility:public"],
+)
+
 # This declares the release artifact published to npm
 pkg_tar(
     name = "rules_webpack",

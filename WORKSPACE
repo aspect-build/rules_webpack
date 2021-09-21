@@ -13,3 +13,10 @@ rules_webpack_dependencies()
 load(":internal_deps.bzl", "rules_webpack_internal_deps")
 
 rules_webpack_internal_deps()
+
+load("@rules_nodejs//nodejs:repositories.bzl", "nodejs_register_toolchains")
+
+nodejs_register_toolchains(
+    name = "node16",
+    node_version = "16.9.0",
+)
