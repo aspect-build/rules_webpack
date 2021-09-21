@@ -27,3 +27,13 @@ def rules_webpack_internal_deps():
         strip_prefix = "bazel-integration-testing-165440b2dbda885f8d1ccb8d0f417e6cf8c54f17",
         sha256 = "2401b1369ef44cc42f91dc94443ef491208dbd06da1e1e10b702d8c189f098e3",
     )
+
+    maybe(
+        http_archive,
+        name = "io_bazel_stardoc",
+        sha256 = "d681269c40a368c6eb7e9eccfee44a9919d22f84f80e331e41e74bdf99a3108e",
+        strip_prefix = "stardoc-8f6d22452d088b49b13ba2c224af69ccc8ccbc90",
+        urls = [
+            "https://github.com/bazelbuild/stardoc/archive/8f6d22452d088b49b13ba2c224af69ccc8ccbc90.tar.gz",
+        ],
+    )
