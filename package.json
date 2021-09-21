@@ -10,7 +10,9 @@
     "type": "git",
     "url": "git+https://github.com/aspect-dev/rules_webpack.git"
   },
-  "keywords": ["bazel"],
+  "keywords": [
+    "bazel"
+  ],
   "author": "",
   "license": "Apache 2.0",
   "bugs": {
