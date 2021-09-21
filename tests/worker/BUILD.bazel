@@ -7,7 +7,7 @@ webpack_bundle(
     args = [
         "./$(execpath index.js)",
         "--mode",
-        "production",
+        "development",
         "-o",
         "$(RULEDIR)",
         "--output-filename",
@@ -17,8 +17,13 @@ webpack_bundle(
     data = [
         "index.js",
         "module.js",
+        "chunks/1.js",
+        "chunks/2.js",
+        "chunks/3.js",
+        "chunks/4.js"
     ],
     outs = ["bundle.js"],
+    supports_workers = True
 )
 
 write_file(
@@ -27,7 +32,7 @@ write_file(
     content = [
         "#!/bin/sh",
         "cd $BUILD_WORKSPACE_DIRECTORY",
-        "cp -fv bazel-bin/tests/simple/bundle.js tests/simple/expected.js_",
+        "cp -fv bazel-bin/tests/worker/bundle.js tests/worker/expected.js_",
     ],
 )
 
@@ -40,7 +45,7 @@ diff_test(
     name = "test",
     failure_message = """to accept the new expected file:
          
-         bazel run //tests/simple:update""",
+         bazel run //tests/worker:update""",
     file1 = "expected.js_",
     file2 = "bundle.js",
 )

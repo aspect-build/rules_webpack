@@ -1,0 +1,13 @@
+{
+  "name": "npm_package",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "bazel test //..."
+  },
+  "devDependencies": {
+    "@bazel/bazelisk": "^1.10.1",
+    "@bazel/webpack": "file:bazel-webpack-0.1.0.tgz",
+    "webpack": ">=5",
+    "webpack-cli": ">=4"
+  }
+}

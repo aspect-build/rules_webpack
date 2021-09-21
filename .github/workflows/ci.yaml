@@ -36,3 +36,12 @@ jobs:
           # Bazelisk will download bazel to here
           XDG_CACHE_HOME: ~/.cache/bazel-repo
         run: bazel --bazelrc=.github/workflows/ci.bazelrc --bazelrc=.bazelrc test //...
+      - name: bazel test //e2e/...
+        env:
+          # Bazelisk will download bazel to here
+          XDG_CACHE_HOME: ~/.cache/bazel-repo
+        run: |
+          npm pack
+          cd e2e
+          npm install $(find ../ -name 'bazel-webpack*.tgz') --save-dev
+          bazel --bazelrc=../.github/workflows/ci.bazelrc --bazelrc=../.bazelrc test //...
