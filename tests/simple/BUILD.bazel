@@ -1,0 +1,51 @@
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
+
+write_file(
+    name = "mock_webpack",
+    out = "bundle.js",
+    content = ["""(()=>{"use strict";console.log("hmm")})();"""],
+)
+
+# TODO: make the rule actually work
+#  webpack_bundle(
+#      name = "bundle",
+#      args = [
+#          "./$(execpath index.js)",
+#          "--mode",
+#          "production",
+#          "-o",
+#          "$(RULEDIR)",
+#          "--output-filename",
+#          "bundle.js",
+#      ],
+#      data = [
+#          "index.js",
+#          "module.js",
+#      ],
+#      out = "bundle.js",
+#  )
+
+write_file(
+    name = "update_gen",
+    out = "update.sh",
+    content = [
+        "#!/bin/sh",
+        "cd $BUILD_WORKSPACE_DIRECTORY",
+        "cp -fv bazel-bin/tests/simple/bundle.js tests/simple/expected.js_",
+    ],
+)
+
+sh_binary(
+    name = "update",
+    srcs = ["update.sh"],
+)
+
+diff_test(
+    name = "test",
+    failure_message = """to accept the new expected file:
+         
+         bazel run //tests/simple:update""",
+    file1 = "expected.js_",
+    file2 = "bundle.js",
+)
