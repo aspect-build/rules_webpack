@@ -13,7 +13,7 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 # ours took precedence. Such breakages are challenging for users, so any
 # changes in this function should be marked as BREAKING in the commit message
 # and released only in semver majors.
-def rules_mylang_dependencies():
+def rules_webpack_dependencies():
     # The minimal version of bazel_skylib we require
     maybe(
         http_archive,
