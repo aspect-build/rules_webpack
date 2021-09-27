@@ -1,0 +1,8 @@
+@bazel
+webpack-cli
+tests
+e2e
+bazel-*
+node_modules
+WORKSPACE
+.*

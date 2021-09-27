@@ -5,11 +5,18 @@ workspace(
     name = "dev_aspect_rules_webpack",
 )
 
-# Install our "runtime" dependencies which users install as well
 load("//webpack:repositories.bzl", "rules_webpack_dependencies")
 
 rules_webpack_dependencies()
 
-load(":internal_deps.bzl", "rules_webpack_internal_deps")
+load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "npm_install")
 
-rules_webpack_internal_deps()
+node_repositories(
+    node_version = "16.0.0"
+)
+
+npm_install(
+    name = "npm",
+    package_json = "//:package.json",
+    package_lock_json = "//:package-lock.json"
+)
