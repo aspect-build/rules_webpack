@@ -1,28 +1,27 @@
 const { join } = require('path');
+const AsyncQueue = require("webpack/lib/util/AsyncQueue");
 
 function notAvailable() {
-  throw new Error(`Watcher polling or pausing is not available under bazel worker mode.`);
+  throw new Error(
+    `Watcher polling or pausing is not available under bazel worker mode.`);
 }
 
 class WorkerWatchFileSystem {
-  constructor(inputFileSystem) {
+  /** @type {Map<string, string} */
+  digestMap = new Map();
+
+  constructor(inputFileSystem, logger) {
     this.inputFileSystem = inputFileSystem;
+    this.logger = logger;
   }
 
-  watch(files, directories, missing, startTime, options, callback) {
-    // We do not care about what webpack tells us to watch.
-    // the source of truth is bazel and bazel tells us which files
-    // are present in the build and when they are chaned or removed.
+  watch(files, directories, missing, startTime, options, callback, callbackUndelayed) {
     if (!files || typeof files[Symbol.iterator] !== 'function') {
       throw new Error('Invalid arguments: \'files\'');
     }
     if (!directories || typeof directories[Symbol.iterator] !== 'function') {
       throw new Error('Invalid arguments: \'directories\'');
     }
-    // Missing files are files which are needed to run the build but were not found
-    // in the filesystem. So webpack reports these files via separate set so that the
-    // watcher knows that this file does not exist and does something else other than
-    // opening a file watcher against the missing files.
     if (!missing || typeof missing[Symbol.iterator] !== 'function') {
       throw new Error('Invalid arguments: \'missing\'');
     }
@@ -38,10 +37,6 @@ class WorkerWatchFileSystem {
     }
 
     const rootPath = process.cwd();
-    /** @type {Map<string, { safeTime: number, timestamp: number }} */
-    const mtimeMap = new Map();
-    /** @type {Map<string, string} */
-    const digestMap = new Map();
 
     /** @param inputs {{[input: string]: string}} */
     const gotInput = (inputs) => {
@@ -50,34 +45,34 @@ class WorkerWatchFileSystem {
       /** @type {Set<string>} */
       const removals = new Set();
 
-      for (const input of digestMap.keys()) {
+      /** @type {Map<string, string>} */
+      const times = new Map();
+
+      for (const input of this.digestMap.keys()) {
         if (!inputs[input]) {
-          mtimeMap.delete(input);
-          digestMap.delete(input);
+          this.digestMap.delete(input);
           const absolutePath = join(rootPath, input);
-          changremovalses.add(absolutePath);
+          removals.add(absolutePath);
           this.inputFileSystem.purge(absolutePath);
         }
       }
 
-      const now = Date.now();
 
       for (const [input, digest] of Object.entries(inputs)) {
-        if (digestMap.get(input) != digest) {
-          digestMap.set(input, digest);
-          // We could get the mtime from the file but it will us a different values each
-          // time as bazel cleans up the files for each invocation so we pretend like
-          // the file was just changed. Webpack does not really care about the real time.
-          // its just to run a diff and find out what has been changed in between.
-          // TODO: find out what is safeTime is all about.
-          mtimeMap.set(input, { timestamp: now, accuracy: 0, safeTime: now });
-          const absolutePath = join(rootPath, input);
+        const absolutePath = join(rootPath, input);
+        times.set(absolutePath, { timestamp: digest });
+        if (this.digestMap.get(input) != digest) {
+
           changes.add(absolutePath);
           this.inputFileSystem.purge(absolutePath);
+
+          this.digestMap.set(input, digest);
+          callbackUndelayed(absolutePath, Date.now());
         }
       }
-      callback(null, mtimeMap, mtimeMap, changes, removals);
-    };
+
+      callback(null, times, times, changes, removals);
+    }
 
     process.on('message', gotInput);
 
@@ -85,29 +80,54 @@ class WorkerWatchFileSystem {
       close: () => process.off('message', gotInput),
       // Pause is called before every compilation to ensure
       // that it does not receive any changes while building
-      pause: () => process.off('message', gotInput),
-      getFileTimeInfoEntries: () => times,
-      getContextTimeInfoEntries: () => times,
+      pause: () => process.off('message', gotInput)
     };
   }
 }
 
+/** @type {import("webpack").Configuration}  */
 module.exports = {
+  snapshot: {
+    module: { hash: true },
+    resolve: { hash: true },
+    resolveBuildDependencies: { hash: true },
+    buildDependencies: { hash: true },
+  },
   plugins: [new class WorkerWatchPlugin {
+    /** @param compiler {import("webpack").Compiler} */
     apply(compiler) {
-      // Do not install the bazel watcher if we are running under RBE or 
+      // Do not install the bazel watcher if we are running under RBE or
       // --strategy=webpack=local
       if (process.send) {
-        compiler.watchFileSystem = new WorkerWatchFileSystem(compiler.inputFileSystem);
+        const logger = compiler.getInfrastructureLogger("bazel.WorkerWatchFileSystem");
+        compiler.watchFileSystem = new WorkerWatchFileSystem(
+          compiler.inputFileSystem,
+          logger,
+        );
         compiler.hooks.afterEmit.tap('WorkerWatchPlugin', () => {
           process.send({ type: 'built' });
+          logger.debug("Compilation succedded.");
         });
-        compiler.hooks.failed.tap('WorkerWatchPlugin', () => {
+        compiler.hooks.failed.tap('WorkerWatchPlugin', (err) => {
           process.send({ type: 'error' });
+          logger.error(err);
+          logger.debug("Compilation has failed.")
         });
-        compiler.hooks.afterEnvironment.tap('WorkerWatchPlugin', () => {
-          process.send({ type: 'ready' });
-        });
+        compiler.hooks.compilation.tap("WorkerWatchPlugin", compilation => {
+          compilation.fileSystemInfo.fileHashQueue = new AsyncQueue({
+            name: "file hash",
+            parallelism: 1000,
+            processor: (path, callback) => {
+              const digest = compiler.watchFileSystem.digestMap.get(path) || null;
+              if (!digest) {
+                compiler.watchFileSystem.digestMap.set(path, null)
+              } else {
+                compilation.fileSystemInfo._fileHashes.set(path, digest);
+              }
+              callback(null, digest);
+            }
+          });
+        })
       }
     }
   }]

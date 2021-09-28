@@ -4,25 +4,17 @@ load("//webpack:defs.bzl", "webpack_bundle")
 
 webpack_bundle(
     name = "bundle",
-    args = [
-        "./$(execpath index.js)",
-        "--mode",
-        "development",
-        "-o",
-        "$(RULEDIR)",
-        "--output-filename",
-        "bundle.js",
-    ],
+    entry_points = {
+        "index.js": "bundle"
+    },
     webpack_config = ":webpack.config.js",
     data = [
-        "index.js",
         "module.js",
         "chunks/1.js",
         "chunks/2.js",
         "chunks/3.js",
         "chunks/4.js"
     ],
-    outs = ["bundle.js"],
     supports_workers = True
 )
 

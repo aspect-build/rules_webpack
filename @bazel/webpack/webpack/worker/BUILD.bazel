@@ -1,7 +1,7 @@
-# This target is used locally by the repository to access webpack-worker.
+# This target is used locally by the repository to access worker adapter and config files.
 # directory is designed to match the userland external repository so that
 # we don't have to do label substitution in release packages.
-# this target represent the files that webpack-worker depends on in userland.
+
 alias(
     name = "webpack.config.js",
     actual = "//webpack/worker:webpack.config.js",

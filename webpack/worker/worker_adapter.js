@@ -18,7 +18,7 @@ const webpackCli = require('webpack-cli');
 
 const MNEMONIC = 'webpack';
 
-/** @typedef {{type: "built" | "error" | "ready"}} IPCMessage */
+/** @typedef {{type: "built" | "error"}} IPCMessage */
 
 function main() {
   if (worker.runAsWorker(process.argv)) {
@@ -28,12 +28,30 @@ function main() {
   }
 }
 
+/**
+ * Returns arguments that is preceded by -c 
+ * @param {string[]} args 
+ * @returns {string[]}
+ */
+function findWebpackConfigs(args) {
+  const configs = [];
+  for (let i = 0; i < args.length; i++) {
+    if (i > 0 && args[i - 1] == "-c") {
+      configs.push(args[i]);
+    }
+  }
+  return configs;
+}
+
 function runAsPersistentWorker() {
   const webpackCliPath = require.resolve('webpack-cli/bin/cli.js');
   /** @type {string} */
   let key;
   /** @type {cp.ChildProcess} */
   let proc;
+
+  /** @type {Map<string, string>} */
+  let configDigestMap = new Map();
 
   /**
    * @param args {string[]}
@@ -42,6 +60,20 @@ function runAsPersistentWorker() {
   const build =
     async (args, inputs) => {
       return new Promise((resolve, reject) => {
+
+        const configs = findWebpackConfigs(args);
+
+        for (const config of configs) {
+          if (configDigestMap.get(config) != inputs[config]) {
+            configDigestMap.set(config, inputs[config]);
+            if (proc && !proc.killed) {
+              console.error(`a config file change ${config} has been detected. Restarting webpack..`);
+              proc.kill();
+            }
+          }
+        }
+
+
         // We can not add --watch argument earlier in the starlark side
         // until we know for sure which mode we are working on. in RBE
         // local execution strategy will be the default and we have
@@ -50,21 +82,21 @@ function runAsPersistentWorker() {
 
         const argumentKey = args.join('#');
 
-        if (key != argumentKey || proc?.killed) {
-          proc?.kill('SIGKILL');
-          proc = undefined;
+        if (key != argumentKey) {
+          worker.log(`Arguments have changed. Killing the process.`);
+          proc?.kill();
         }
 
         /** @param err {Error} */
         const procDied =
           (err) => {
             if (err) console.error(err);
-            proc = undefined;
-            reject();
+            worker.log(`Process has died.`);
+            resolve(false);
           }
 
-
-        if (!proc) {
+        if (!proc || proc?.killed) {
+          worker.log(`Forking webpack cli.`);
           proc = cp.fork(webpackCliPath, args, { stdio: 'pipe' });
           proc.once('error', procDied);
           proc.once('exit', procDied);
@@ -72,22 +104,19 @@ function runAsPersistentWorker() {
           proc.stdout.pipe(process.stderr);
           key = argumentKey;
         }
-        else {
-          proc.send(inputs);
-        }
+        proc.send(inputs);
 
-    
+
         /** @param message {IPCMessage} */
         const gotMessage = (message) => {
           switch (message.type) {
-            case 'ready':
-              proc.send(inputs);
-              break;
             case 'built':
+              worker.log(`Compilation has succedded.`);
               resolve(true);
               proc.off('message', gotMessage);
               break;
             case 'error':
+              worker.log(`Compilation has failed.`);
               console.error(error);
               resolve(false);
               proc.off('message', gotMessage);
@@ -95,7 +124,7 @@ function runAsPersistentWorker() {
           }
         }
 
-          proc.on('message', gotMessage);
+        proc.on('message', gotMessage);
 
       });
     }

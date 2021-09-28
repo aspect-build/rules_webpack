@@ -4,21 +4,11 @@ load("//webpack:defs.bzl", "webpack_bundle")
 
 webpack_bundle(
     name = "bundle",
-    args = [
-        "./$(execpath index.js)",
-        "--mode",
-        "production",
-        "-o",
-        "$(RULEDIR)",
-        "--output-filename",
-        "bundle.js",
-    ],
+    entry_point = "index.js",
     webpack_config = ":webpack.config.js",
     data = [
-        "index.js",
         "module.js",
     ],
-    outs = ["bundle.js"],
 )
 
 write_file(

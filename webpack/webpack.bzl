@@ -21,7 +21,12 @@ See the <a href="https://webpack.js.org/api/cli/">Webpack CLI docs</a> for a com
             allow_files = True,
         ),
         "output_dir": attr.bool(),
-        "outs": attr.output_list(),
+        "entry_point": attr.label(
+            allow_single_file = True,
+        ),
+        "entry_points": attr.label_keyed_string_dict(
+            allow_files = True,
+        ),
         "supports_workers": attr.bool(
             doc = """Experimental! Use only with caution.
 
@@ -46,20 +51,83 @@ worker aware binary rather than "webpack_bin".""",
             allow_single_file = [".js"],
             mandatory = True,
         ),
-        "_bazel_webpack_config": attr.label(
+        "_worker_webpack_config": attr.label(
             allow_single_file = [".js"],
             default = "//@bazel/webpack/webpack/worker:webpack.config.js",
         ),
+        "_webpack_config_file": attr.label(
+            allow_single_file = [".js"],
+            default = "//@bazel/webpack/webpack:webpack.config.js",
+        ),
     }
 
+
+def _desugar_entry_point_names(name, entry_point, entry_points):
+    """Users can specify entry_point (sugar) or entry_points (long form).
+
+    This function allows our code to treat it like they always used the long form.
+
+    It also performs validation:
+    - exactly one of these attributes should be specified
+    """
+    if entry_point and entry_points:
+        fail("Cannot specify both entry_point and entry_points")
+    if not entry_point and not entry_points:
+        fail("One of entry_point or entry_points must be specified")
+    if entry_point:
+        return [name]
+    return entry_points.values()
+
+
+def _desugar_entry_points(name, entry_point, entry_points, inputs):
+    """Like above, but used by the implementation function, where the types differ.
+
+    It also performs validation:
+    - attr.label_keyed_string_dict doesn't accept allow_single_file
+      so we have to do validation now to be sure each key is a label resulting in one file
+
+    It converts from dict[target: string] to dict[file: string]
+    See: https://github.com/bazelbuild/bazel/issues/5355
+    """
+    names = _desugar_entry_point_names(name, entry_point.label if entry_point else None, entry_points)
+
+    if entry_point:
+        return {entry_point.files.to_list()[0]: names[0]}
+
+    result = {}
+    for ep in entry_points.items():
+        entry_point = ep[0]
+        name = ep[1]
+        f = entry_point.files.to_list()
+        if len(f) != 1:
+            fail("keys in webpack_bundle#entry_points must provide one file, but %s has %s" % (entry_point.label, len(f)))
+        result[f[0]] = name
+    return result
+
+
+def _no_ext(f):
+    return f.short_path[:-len(f.extension) - 1]
+
+
+def _webpack_outs(name, entry_point, entry_points, output_dir):
+    """Supply some labelled outputs in the common case of a single entry point"""
+    result = {}
+    entry_point_outs = _desugar_entry_point_names(name, entry_point, entry_points)
+    if output_dir:
+        return {}
+    else:
+        if len(entry_point_outs) > 1:
+            fail("Multiple entry points require that output_dir be set")
+        out = entry_point_outs[0]
+        # TODO: accept other extensions to be output
+        result[out] = out + ".js"
+    return result
+
+
 def _webpack_impl(ctx):
-    if ctx.attr.output_dir and ctx.outputs.outs:
-        fail("Only one of output_dir and outs may be specified")
-    if not ctx.attr.output_dir and not ctx.outputs.outs and not ctx.attr.stdout:
-        fail("One of output_dir, outs or stdout must be specified")
 
     inputs = _inputs(ctx)
-    outputs = []
+    outputs = [getattr(ctx.outputs, o) for o in dir(ctx.outputs)]
 
     # See CLI documentation at https://webpack.js.org/api/cli/
     args = ctx.actions.args()
@@ -69,13 +137,53 @@ def _webpack_impl(ctx):
         args.use_param_file("@%s", use_always = True)
         args.set_param_file_format("multiline")
 
-    for a in ctx.attr.args:
-        args.add_all([expand_variables(ctx, e, outs = ctx.outputs.outs, output_dir = ctx.attr.output_dir) for e in _expand_locations(ctx, a)])
+    # Add user specified arguments *before* rule supplied arguments
+    args.add_all(ctx.attr.args)
 
-    if ctx.attr.output_dir:
-        outputs = [ctx.actions.declare_directory(ctx.attr.name)]
-    else:
-        outputs = ctx.outputs.outs
+    # Desugar entrypoints
+    entry_points = _desugar_entry_points(ctx.label.name, ctx.attr.entry_point, ctx.attr.entry_points, inputs).items()
+
+    entry_mapping = {}
+
+    for entry_point in entry_points:
+        inputs.append(entry_point[0])
+        # TODO: find an idiomatic way to do this.
+        entry_mapping[entry_point[1]] = "./%s" % (entry_point[0].path)
+    
+
+    # Expand webpack config for the entry mapping
+    config = ctx.actions.declare_file("_%s.webpack.config.js" % ctx.label.name)
+
+    ctx.actions.expand_template(
+        template = ctx.file._webpack_config_file,
+        output = config,
+        substitutions = {
+            "{ENTRIES}": json.encode(entry_mapping)
+        },
+    )
+
+    # Add generated config
+    args.add_all(["-c", config.path])
+    inputs.append(config)
+
+    # Add user defined config as an input and argument
+    args.add_all(["-c", ctx.file.webpack_config.path])
+    inputs.append(ctx.file.webpack_config)
+
+
+    # Change source-map and mode based on compilation mode
+    # See: https://docs.bazel.build/versions/main/user-manual.html#flag--compilation_mode
+    # See: https://webpack.js.org/configuration/devtool/#devtool
+    compilation_mode = ctx.var["COMPILATION_MODE"]
+
+    if compilation_mode == "fastbuild":
+        args.add_all(["--devtool", "eval", "--mode", "development"])
+    elif compilation_mode == "dbg":
+        args.add_all(["--devtool", "eval-source-map", "--mode", "development"])
+    elif compilation_mode == "opt":
+        args.add_all(["--no-devtool", "--mode", "production"])
+
+
 
     executable = "webpack_cli_bin"
     execution_requirements = {}
@@ -84,14 +192,18 @@ def _webpack_impl(ctx):
         executable = "webpack_worker_bin"
         execution_requirements["supports-workers"] = str(int(ctx.attr.supports_workers))
 
-        args.add_all(["-c", ctx.file._bazel_webpack_config.path, "--merge"])
-        inputs.append(ctx.file._bazel_webpack_config)
+        args.add_all(["-c", ctx.file._worker_webpack_config.path])
+        inputs.append(ctx.file._worker_webpack_config)
+    
 
-    # Add user defined config as an input and argument
-    args.add_all(["-c", ctx.file.webpack_config.path])
-    inputs.append(ctx.file.webpack_config)
+    if ctx.attr.output_dir:
+        outputs = [ctx.actions.declare_directory(ctx.attr.name)]
+        args.add_all(["--output-path", outputs[0].path])
+    else:
+        args.add_all(["--output-path", outputs[0].dirname])
 
-
+    # Merge all webpack configs
+    args.add("--merge")
 
     run_node(
         ctx,
@@ -130,4 +242,5 @@ def _inputs(ctx):
 webpack = rule(
     implementation = _webpack_impl,
     attrs = _ATTRS,
+    outputs = _webpack_outs,
 )
