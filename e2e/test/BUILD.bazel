@@ -1,42 +1,40 @@
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@npm//@bazel/webpack/webpack:defs.bzl", "webpack_bundle")
+load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin")
 
 webpack_bundle(
     name = "bundle",
-    args = [
-        "./$(execpath module.js)",
-        "--mode",
-        "production",
-        "-o",
-        "$(RULEDIR)",
-        "--output-filename",
-        "bundle.js",
-    ],
+    entry_point = "module.js",
     webpack_config = ":webpack.config.js",
-    data = [
-        "module.js",
-    ],
-    outs = ["bundle.js"],
 )
+
+diff_test(
+    name = "test",
+    failure_message = """to accept the new expected file:
+         
+         bazel run //test:update""",
+    file1 = "bundle.expected.js_",
+    file2 = "bundle.js",
+)
+
 
 webpack_bundle(
     name = "bundle_worker",
-    args = [
-        "./$(execpath module.js)",
-        "--mode",
-        "production",
-        "-o",
-        "$(RULEDIR)",
-        "--output-filename",
-        "bundle_worker.js",
-    ],
+    entry_points = {
+        "module.js": "bundle_worker"
+    },
     webpack_config = ":webpack.config.js",
-    data = [
-        "module.js",
-    ],
-    outs = ["bundle_worker.js"],
     supports_workers = True
+)
+
+diff_test(
+    name = "test_worker",
+    failure_message = """to accept the new expected file:
+         
+         bazel run //test:update""",
+    file1 = "worker.expected.js_",
+    file2 = "bundle_worker.js"
 )
 
 write_file(
@@ -45,30 +43,12 @@ write_file(
     content = [
         "#!/bin/sh",
         "cd $BUILD_WORKSPACE_DIRECTORY",
-        "cp -fv bazel-bin/test/bundle.js test/module.expected.js_",
+        "cp -fv bazel-bin/test/bundle.js test/bundle.expected.js_",
+        "cp -fv bazel-bin/test/bundle_worker/bundle.js test/worker.expected.js_",
     ],
 )
 
 sh_binary(
     name = "update",
     srcs = ["update.sh"],
-)
-
-diff_test(
-    name = "test",
-    failure_message = """to accept the new expected file:
-         
-         bazel run //test:update""",
-    file1 = "module.expected.js_",
-    file2 = "bundle.js",
-)
-
-
-diff_test(
-    name = "test_worker",
-    failure_message = """to accept the new expected file:
-         
-         bazel run //test:update""",
-    file1 = "module.expected.js_",
-    file2 = "bundle_worker.js",
 )
