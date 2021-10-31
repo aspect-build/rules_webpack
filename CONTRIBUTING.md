@@ -30,3 +30,8 @@ echo "query $OVERRIDE" >> ~/.bazelrc
 ```
 
 This means that any usage of `@rules_webpack` on your system will point to this folder.
+
+## Releasing
+
+1. npm version [patch|minor|major]
+1. npm publish

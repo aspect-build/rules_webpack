@@ -1,3 +1,5 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 exports_files([
     "webpack.config.js",
     "webpack.bzl",
@@ -13,4 +15,30 @@ alias(
     name = "webpack",
     actual = "@npm//webpack",
     visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "webpack-bzl",
+    srcs = [
+        "webpack.bzl",
+        "@build_bazel_rules_nodejs//:bzl",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+bzl_library(
+    name = "defs",
+    srcs = ["defs.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [":webpack-bzl"],
+)
+
+bzl_library(
+    name = "repositories",
+    srcs = ["repositories.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@bazel_tools//tools/build_defs/repo:http.bzl",
+        "@bazel_tools//tools/build_defs/repo:utils.bzl",
+    ],
 )
