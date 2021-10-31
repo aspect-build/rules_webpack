@@ -5,10 +5,6 @@ workspace(
     name = "aspect_rules_webpack",
 )
 
-load("//:internal_deps.bzl", "rules_webpack_internal_deps")
-
-rules_webpack_internal_deps()
-
 load("//webpack:repositories.bzl", "rules_webpack_dependencies")
 
 rules_webpack_dependencies()
