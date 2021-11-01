@@ -151,7 +151,7 @@ def _webpack_impl(ctx):
         template = ctx.file._webpack_config_file,
         output = config,
         substitutions = {
-            "{ENTRIES}": json.encode(entry_mapping),
+            "{ ENTRIES }": json.encode(entry_mapping),
         },
     )
 
