@@ -1,3 +1,1 @@
-module.exports = (env, argv) => ({
-
-});
+module.exports = (env, argv) => ({})

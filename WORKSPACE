@@ -12,11 +12,11 @@ rules_webpack_dependencies()
 load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "npm_install")
 
 node_repositories(
-    node_version = "16.0.0"
+    node_version = "16.0.0",
 )
 
 npm_install(
     name = "npm",
     package_json = "//:package.json",
-    package_lock_json = "//:package-lock.json"
+    package_lock_json = "//:package-lock.json",
 )

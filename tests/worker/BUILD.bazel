@@ -4,18 +4,18 @@ load("//webpack:defs.bzl", "webpack_bundle")
 
 webpack_bundle(
     name = "bundle",
-    entry_points = {
-        "index.js": "bundle"
-    },
-    webpack_config = ":webpack.config.js",
     data = [
-        "module.js",
         "chunks/1.js",
         "chunks/2.js",
         "chunks/3.js",
-        "chunks/4.js"
+        "chunks/4.js",
+        "module.js",
     ],
-    supports_workers = True
+    entry_points = {
+        "index.js": "bundle",
+    },
+    supports_workers = True,
+    webpack_config = ":webpack.config.js",
 )
 
 write_file(

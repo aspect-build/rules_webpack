@@ -1,3 +1,3 @@
 exports_files([
-    "webpack.config.js"
+    "webpack.config.js",
 ])
