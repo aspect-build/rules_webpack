@@ -1,66 +1,63 @@
 """Webpack bundle producing rule defintion."""
 
 load("@build_bazel_rules_nodejs//:providers.bzl", "DeclarationInfo", "ExternalNpmPackageInfo", "JSModuleInfo", "node_modules_aspect", "run_node")
-load("@build_bazel_rules_nodejs//internal/common:expand_variables.bzl", "expand_variables")
 load("@build_bazel_rules_nodejs//internal/linker:link_node_modules.bzl", "module_mappings_aspect")
 
-
 _ATTRS = {
-        "args": attr.string_list(
-            doc = """Command line arguments to pass to Webpack.
+    "args": attr.string_list(
+        doc = """Command line arguments to pass to Webpack.
 
 These argument passed on the command line before arguments that are added by the rule.
 Run `bazel` with `--subcommands` to see what Webpack CLI command line was invoked.
 
 See the <a href="https://webpack.js.org/api/cli/">Webpack CLI docs</a> for a complete list of supported arguments.""",
-            default = [],
-        ),
-        "data": attr.label_list(
-            doc = """Other libraries for the webpack compilation""",
-            aspects = [module_mappings_aspect, node_modules_aspect],
-            allow_files = True,
-        ),
-        "output_dir": attr.bool(),
-        "entry_point": attr.label(
-            allow_single_file = True,
-        ),
-        "entry_points": attr.label_keyed_string_dict(
-            allow_files = True,
-        ),
-        "supports_workers": attr.bool(
-            doc = """Experimental! Use only with caution.
+        default = [],
+    ),
+    "data": attr.label_list(
+        doc = """Other libraries for the webpack compilation""",
+        aspects = [module_mappings_aspect, node_modules_aspect],
+        allow_files = True,
+    ),
+    "output_dir": attr.bool(),
+    "entry_point": attr.label(
+        allow_single_file = True,
+    ),
+    "entry_points": attr.label_keyed_string_dict(
+        allow_files = True,
+    ),
+    "supports_workers": attr.bool(
+        doc = """Experimental! Use only with caution.
 
 Allows you to enable the Bazel Worker strategy for this library.
 When enabled, this rule invokes the "webpack_worker_bin"
 worker aware binary rather than "webpack_bin".""",
-            default = False,
-        ),
-        "webpack_worker_bin": attr.label(
-            doc = "Internal use only",
-            executable = True,
-            cfg = "exec",
-            default = Label("//@bazel/webpack/bin:webpack-worker"),
-        ),
-        "webpack_cli_bin": attr.label(
-            doc = "Target that executes the webpack-cli binary",
-            executable = True,
-            cfg = "exec",
-            default = Label("//webpack-cli/bin:webpack-cli"),
-        ),
-        "webpack_config": attr.label(
-            allow_single_file = [".js"],
-            mandatory = True,
-        ),
-        "_worker_webpack_config": attr.label(
-            allow_single_file = [".js"],
-            default = "//@bazel/webpack/webpack/worker:webpack.config.js",
-        ),
-        "_webpack_config_file": attr.label(
-            allow_single_file = [".js"],
-            default = "//@bazel/webpack/webpack:webpack.config.js",
-        ),
-    }
-
+        default = False,
+    ),
+    "webpack_worker_bin": attr.label(
+        doc = "Internal use only",
+        executable = True,
+        cfg = "exec",
+        default = Label("//@bazel/webpack/bin:webpack-worker"),
+    ),
+    "webpack_cli_bin": attr.label(
+        doc = "Target that executes the webpack-cli binary",
+        executable = True,
+        cfg = "exec",
+        default = Label("//webpack-cli/bin:webpack-cli"),
+    ),
+    "webpack_config": attr.label(
+        allow_single_file = [".js"],
+        mandatory = True,
+    ),
+    "_worker_webpack_config": attr.label(
+        allow_single_file = [".js"],
+        default = "//@bazel/webpack/webpack/worker:webpack.config.js",
+    ),
+    "_webpack_config_file": attr.label(
+        allow_single_file = [".js"],
+        default = "//@bazel/webpack/webpack:webpack.config.js",
+    ),
+}
 
 def _desugar_entry_point_names(name, entry_point, entry_points):
     """Users can specify entry_point (sugar) or entry_points (long form).
@@ -77,7 +74,6 @@ def _desugar_entry_point_names(name, entry_point, entry_points):
     if entry_point:
         return [name]
     return entry_points.values()
-
 
 def _desugar_entry_points(name, entry_point, entry_points, inputs):
     """Like above, but used by the implementation function, where the types differ.
@@ -104,10 +100,8 @@ def _desugar_entry_points(name, entry_point, entry_points, inputs):
         result[f[0]] = name
     return result
 
-
 def _no_ext(f):
     return f.short_path[:-len(f.extension) - 1]
-
 
 def _webpack_outs(name, entry_point, entry_points, output_dir):
     """Supply some labelled outputs in the common case of a single entry point"""
@@ -119,13 +113,12 @@ def _webpack_outs(name, entry_point, entry_points, output_dir):
         if len(entry_point_outs) > 1:
             fail("Multiple entry points require that output_dir be set")
         out = entry_point_outs[0]
+
         # TODO: accept other extensions to be output
         result[out] = out + ".js"
     return result
 
-
 def _webpack_impl(ctx):
-
     inputs = _inputs(ctx)
     outputs = [getattr(ctx.outputs, o) for o in dir(ctx.outputs)]
 
@@ -147,9 +140,9 @@ def _webpack_impl(ctx):
 
     for entry_point in entry_points:
         inputs.append(entry_point[0])
+
         # TODO: find an idiomatic way to do this.
         entry_mapping[entry_point[1]] = "./%s" % (entry_point[0].path)
-    
 
     # Expand webpack config for the entry mapping
     config = ctx.actions.declare_file("_%s.webpack.config.js" % ctx.label.name)
@@ -158,7 +151,7 @@ def _webpack_impl(ctx):
         template = ctx.file._webpack_config_file,
         output = config,
         substitutions = {
-            "{ENTRIES}": json.encode(entry_mapping)
+            "{ENTRIES}": json.encode(entry_mapping),
         },
     )
 
@@ -169,7 +162,6 @@ def _webpack_impl(ctx):
     # Add user defined config as an input and argument
     args.add_all(["-c", ctx.file.webpack_config.path])
     inputs.append(ctx.file.webpack_config)
-
 
     # Change source-map and mode based on compilation mode
     # See: https://docs.bazel.build/versions/main/user-manual.html#flag--compilation_mode
@@ -183,8 +175,6 @@ def _webpack_impl(ctx):
     elif compilation_mode == "opt":
         args.add_all(["--no-devtool", "--mode", "production"])
 
-
-
     executable = "webpack_cli_bin"
     execution_requirements = {}
 
@@ -194,7 +184,6 @@ def _webpack_impl(ctx):
 
         args.add_all(["-c", ctx.file._worker_webpack_config.path])
         inputs.append(ctx.file._worker_webpack_config)
-    
 
     if ctx.attr.output_dir:
         outputs = [ctx.actions.declare_directory(ctx.attr.name)]

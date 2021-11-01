@@ -1,6 +1,6 @@
 {
   "name": "@bazel/webpack",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "EXPERIMENTAL: this repository is in early development and may be deleted and abandoned without warning. Do not depend on this yet.",
   "main": "index.js",
   "scripts": {

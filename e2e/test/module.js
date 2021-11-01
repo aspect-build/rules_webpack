@@ -1,3 +1,3 @@
-export const c = 'hmm'
+export const c = 'hmmm'
 
-console.log(c);
+console.log(c)

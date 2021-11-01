@@ -1,7 +1,6 @@
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
 load("@npm//@bazel/webpack/webpack:defs.bzl", "webpack_bundle")
-load("@build_bazel_rules_nodejs//:index.bzl", "copy_to_bin")
 
 webpack_bundle(
     name = "bundle",
@@ -18,14 +17,13 @@ diff_test(
     file2 = "bundle.js",
 )
 
-
 webpack_bundle(
     name = "bundle_worker",
     entry_points = {
-        "module.js": "bundle_worker"
+        "module.js": "bundle_worker",
     },
+    supports_workers = True,
     webpack_config = ":webpack.config.js",
-    supports_workers = True
 )
 
 diff_test(
@@ -34,7 +32,7 @@ diff_test(
          
          bazel run //test:update""",
     file1 = "worker.expected.js_",
-    file2 = "bundle_worker.js"
+    file2 = "bundle_worker.js",
 )
 
 write_file(

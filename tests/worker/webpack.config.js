@@ -1,9 +1,9 @@
 module.exports = {
-    infrastructureLogging: {
-        debug: true
-    },
-    stats: {
-        loggingDebug: true,
-        logging: true,
-    },
-};
+  infrastructureLogging: {
+    debug: true,
+  },
+  stats: {
+    loggingDebug: true,
+    logging: true,
+  },
+}

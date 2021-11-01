@@ -4,7 +4,6 @@
 # this target represent the webpack entry in bin section of webpack-cli npm package.
 # This is a npm_package_bin target in userland repository.
 # NOTE: this file is not meant to be released in the npm package. be careful
-load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
 
 alias(
     name = "webpack-cli",

@@ -1,3 +1,3 @@
 module.exports = {
-    entry: {ENTRIES}
+  entry: { ENTRIES },
 }
