@@ -2,7 +2,7 @@
 # This is *not* included in the published distribution.
 workspace(
     # see https://docs.bazel.build/versions/main/skylark/deploying.html#workspace
-    name = "dev_aspect_rules_webpack",
+    name = "aspect_rules_webpack",
 )
 
 load("//webpack:repositories.bzl", "rules_webpack_dependencies")

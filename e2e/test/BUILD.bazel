@@ -42,7 +42,7 @@ write_file(
         "#!/bin/sh",
         "cd $BUILD_WORKSPACE_DIRECTORY",
         "cp -fv bazel-bin/test/bundle.js test/bundle.expected.js_",
-        "cp -fv bazel-bin/test/bundle_worker/bundle.js test/worker.expected.js_",
+        "cp -fv bazel-bin/test/bundle_worker.js test/worker.expected.js_",
     ],
 )
 

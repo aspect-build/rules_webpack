@@ -35,7 +35,7 @@ eval("console.log('Mon 27 Sep 2021 12:24:34 CEST')\n\n\n//# sourceURL=webpack://
   \**********************************/
 /***/ (() => {
 
-eval("console.log(\"chunks 3\");\n\n\n//# sourceURL=webpack:///./tests/worker/chunks/3.js?");
+eval("console.log('chunks 3')\n\n\n//# sourceURL=webpack:///./tests/worker/chunks/3.js?");
 
 /***/ }),
 
