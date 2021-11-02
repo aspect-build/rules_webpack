@@ -6,3 +6,4 @@ bazel-*
 node_modules
 WORKSPACE
 .*
+docs
