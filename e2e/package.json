@@ -8,6 +8,7 @@
     "@bazel/bazelisk": "^1.10.1",
     "@bazel/webpack": "file:../bazel-webpack-0.1.1.tgz",
     "webpack": ">=5",
-    "webpack-cli": ">=4"
+    "webpack-cli": ">=4",
+    "webpack-dev-server": ">=4"
   }
 }

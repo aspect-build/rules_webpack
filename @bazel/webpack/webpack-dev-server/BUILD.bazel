@@ -1,0 +1,15 @@
+# This target is used locally by the repository to access webpack-dev-server.
+# directory is designed to match the userland external repository so that
+# we don't have to do label substitution in release packages.
+# this target represent the files that webpack-dev-server depends on in userland.
+alias(
+    name = "webpack.config.js",
+    actual = "//webpack-dev-server:webpack.config.js",
+    visibility = ["//visibility:public"],
+)
+
+alias(
+    name = "entry_point.js",
+    actual = "//webpack-dev-server:entry_point.js",
+    visibility = ["//visibility:public"],
+)
