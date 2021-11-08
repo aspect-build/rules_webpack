@@ -27,6 +27,6 @@ webpack(<a href="#webpack-name">name</a>, <a href="#webpack-args">args</a>, <a h
 | <a id="webpack-supports_workers"></a>supports_workers |  Experimental! Use only with caution.<br><br>Allows you to enable the Bazel Worker strategy for this library. When enabled, this rule invokes the "webpack_worker_bin" worker aware binary rather than "webpack_bin".   | Boolean | optional | False |
 | <a id="webpack-webpack_cli_bin"></a>webpack_cli_bin |  Target that executes the webpack-cli binary   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | //webpack-cli/bin:webpack-cli |
 | <a id="webpack-webpack_config"></a>webpack_config |  -   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | required |  |
-| <a id="webpack-webpack_worker_bin"></a>webpack_worker_bin |  Internal use only   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | //@bazel/webpack/bin:webpack-worker |
+| <a id="webpack-webpack_worker_bin"></a>webpack_worker_bin |  Internal use only   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | //@aspect-build/webpack/bin:webpack-worker |
 
 

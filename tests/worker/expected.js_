@@ -15,7 +15,7 @@
   \**********************************/
 /***/ (() => {
 
-eval("console.log('Mon 27 Sep 2021 12:24:34 CEST')\n\n\n//# sourceURL=webpack:///./tests/worker/chunks/1.js?");
+eval("console.log('Mon 27 Sep 2021 12:24:34 CEST')\n\n\n//# sourceURL=webpack://@aspect-build/webpack/./tests/worker/chunks/1.js?");
 
 /***/ }),
 
@@ -25,7 +25,7 @@ eval("console.log('Mon 27 Sep 2021 12:24:34 CEST')\n\n\n//# sourceURL=webpack://
   \**********************************/
 /***/ (() => {
 
-eval("console.log('Mon 27 Sep 2021 12:24:34 CEST')\n\n\n//# sourceURL=webpack:///./tests/worker/chunks/2.js?");
+eval("console.log('Mon 27 Sep 2021 12:24:34 CEST')\n\n\n//# sourceURL=webpack://@aspect-build/webpack/./tests/worker/chunks/2.js?");
 
 /***/ }),
 
@@ -35,7 +35,7 @@ eval("console.log('Mon 27 Sep 2021 12:24:34 CEST')\n\n\n//# sourceURL=webpack://
   \**********************************/
 /***/ (() => {
 
-eval("console.log('chunks 3')\n\n\n//# sourceURL=webpack:///./tests/worker/chunks/3.js?");
+eval("console.log('chunks 3')\n\n\n//# sourceURL=webpack://@aspect-build/webpack/./tests/worker/chunks/3.js?");
 
 /***/ }),
 
@@ -45,7 +45,7 @@ eval("console.log('chunks 3')\n\n\n//# sourceURL=webpack:///./tests/worker/chunk
   \**********************************/
 /***/ (() => {
 
-eval("console.log('Mon 27 Sep 2021 12:24:34 CEST')\n\n\n//# sourceURL=webpack:///./tests/worker/chunks/4.js?");
+eval("console.log('Mon 27 Sep 2021 12:24:34 CEST')\n\n\n//# sourceURL=webpack://@aspect-build/webpack/./tests/worker/chunks/4.js?");
 
 /***/ }),
 
@@ -56,7 +56,7 @@ eval("console.log('Mon 27 Sep 2021 12:24:34 CEST')\n\n\n//# sourceURL=webpack://
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _module__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./module */ \"./tests/worker/module.js\");\n/* harmony import */ var _chunks_1__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./chunks/1 */ \"./tests/worker/chunks/1.js\");\n/* harmony import */ var _chunks_1__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_chunks_1__WEBPACK_IMPORTED_MODULE_1__);\n/* harmony import */ var _chunks_2__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./chunks/2 */ \"./tests/worker/chunks/2.js\");\n/* harmony import */ var _chunks_2__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_chunks_2__WEBPACK_IMPORTED_MODULE_2__);\n/* harmony import */ var _chunks_3__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./chunks/3 */ \"./tests/worker/chunks/3.js\");\n/* harmony import */ var _chunks_3__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_chunks_3__WEBPACK_IMPORTED_MODULE_3__);\n/* harmony import */ var _chunks_4__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./chunks/4 */ \"./tests/worker/chunks/4.js\");\n/* harmony import */ var _chunks_4__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_chunks_4__WEBPACK_IMPORTED_MODULE_4__);\n\n\n\n\n\nconsole.log(_module__WEBPACK_IMPORTED_MODULE_0__.c)\n\n\n//# sourceURL=webpack:///./tests/worker/index.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _module__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./module */ \"./tests/worker/module.js\");\n/* harmony import */ var _chunks_1__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./chunks/1 */ \"./tests/worker/chunks/1.js\");\n/* harmony import */ var _chunks_1__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_chunks_1__WEBPACK_IMPORTED_MODULE_1__);\n/* harmony import */ var _chunks_2__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./chunks/2 */ \"./tests/worker/chunks/2.js\");\n/* harmony import */ var _chunks_2__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_chunks_2__WEBPACK_IMPORTED_MODULE_2__);\n/* harmony import */ var _chunks_3__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./chunks/3 */ \"./tests/worker/chunks/3.js\");\n/* harmony import */ var _chunks_3__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_chunks_3__WEBPACK_IMPORTED_MODULE_3__);\n/* harmony import */ var _chunks_4__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./chunks/4 */ \"./tests/worker/chunks/4.js\");\n/* harmony import */ var _chunks_4__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_chunks_4__WEBPACK_IMPORTED_MODULE_4__);\n\n\n\n\n\nconsole.log(_module__WEBPACK_IMPORTED_MODULE_0__.c)\n\n\n//# sourceURL=webpack://@aspect-build/webpack/./tests/worker/index.js?");
 
 /***/ }),
 
@@ -67,7 +67,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _mod
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"c\": () => (/* binding */ c)\n/* harmony export */ });\nconst c = 'Thu  7 Oct 2021 19:54:58 CEST'\n\n\n//# sourceURL=webpack:///./tests/worker/module.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"c\": () => (/* binding */ c)\n/* harmony export */ });\nconst c = 'Thu  7 Oct 2021 19:54:58 CEST'\n\n\n//# sourceURL=webpack://@aspect-build/webpack/./tests/worker/module.js?");
 
 /***/ })
 

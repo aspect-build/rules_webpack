@@ -1,6 +1,6 @@
 <!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
-
+webpack_dev_server macro
 
 <a id="#webpack_dev_server"></a>
 
@@ -23,8 +23,8 @@ webpack_dev_server(<a href="#webpack_dev_server-name">name</a>, <a href="#webpac
 | <a id="webpack_dev_server-args"></a>args |  <p align="center"> - </p>   |  <code>[]</code> |
 | <a id="webpack_dev_server-data"></a>data |  <p align="center"> - </p>   |  <code>[]</code> |
 | <a id="webpack_dev_server-tags"></a>tags |  <p align="center"> - </p>   |  <code>[]</code> |
-| <a id="webpack_dev_server-ibazel_webpack_plugin"></a>ibazel_webpack_plugin |  <p align="center"> - </p>   |  <code>Label("//@bazel/webpack/webpack-dev-server:webpack.config.js")</code> |
-| <a id="webpack_dev_server-webpack_entry_point"></a>webpack_entry_point |  <p align="center"> - </p>   |  <code>Label("//@bazel/webpack/webpack-dev-server:entry_point.js")</code> |
+| <a id="webpack_dev_server-ibazel_webpack_plugin"></a>ibazel_webpack_plugin |  <p align="center"> - </p>   |  <code>Label("//@aspect-build/webpack/webpack-dev-server:webpack.config.js")</code> |
+| <a id="webpack_dev_server-webpack_entry_point"></a>webpack_entry_point |  <p align="center"> - </p>   |  <code>Label("//@aspect-build/webpack/webpack-dev-server:entry_point.js")</code> |
 | <a id="webpack_dev_server-kwargs"></a>kwargs |  <p align="center"> - </p>   |  none |
 
 

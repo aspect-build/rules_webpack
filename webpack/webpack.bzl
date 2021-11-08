@@ -37,7 +37,7 @@ worker aware binary rather than "webpack_bin".""",
         doc = "Internal use only",
         executable = True,
         cfg = "exec",
-        default = Label("//@bazel/webpack/bin:webpack-worker"),
+        default = Label("//@aspect-build/webpack/bin:webpack-worker"),
     ),
     "webpack_cli_bin": attr.label(
         doc = "Target that executes the webpack-cli binary",
@@ -51,11 +51,11 @@ worker aware binary rather than "webpack_bin".""",
     ),
     "_worker_webpack_config": attr.label(
         allow_single_file = [".js"],
-        default = "//@bazel/webpack/webpack/worker:webpack.config.js",
+        default = "//@aspect-build/webpack/webpack/worker:webpack.config.js",
     ),
     "_webpack_config_file": attr.label(
         allow_single_file = [".js"],
-        default = "//@bazel/webpack/webpack:webpack.config.js",
+        default = "//@aspect-build/webpack/webpack:webpack.config.js",
     ),
 }
 

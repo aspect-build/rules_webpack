@@ -1,5 +1,5 @@
 {
-  "name": "@bazel/webpack",
+  "name": "@aspect-build/webpack",
   "version": "0.1.1",
   "description": "EXPERIMENTAL: this repository is in early development and may be deleted and abandoned without warning. Do not depend on this yet.",
   "main": "index.js",
@@ -20,15 +20,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aspect-dev/rules_webpack.git"
+    "url": "git+https://github.com/aspect-build/rules_webpack.git"
   },
   "keywords": [
     "bazel"
   ],
-  "author": "",
   "license": "Apache 2.0",
   "bugs": {
-    "url": "https://github.com/aspect-dev/rules_webpack/issues"
+    "url": "https://github.com/aspect-build/rules_webpack/issues"
   },
-  "homepage": "https://github.com/aspect-dev/rules_webpack#readme"
+  "homepage": "https://github.com/aspect-build/rules_webpack#readme"
 }
