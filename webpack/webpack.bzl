@@ -10,16 +10,19 @@ _ATTRS = {
 These argument passed on the command line before arguments that are added by the rule.
 Run `bazel` with `--subcommands` to see what Webpack CLI command line was invoked.
 
-See the <a href="https://webpack.js.org/api/cli/">Webpack CLI docs</a> for a complete list of supported arguments.""",
+See the [Webpack CLI docs](https://webpack.js.org/api/cli/) for a complete list of supported arguments.""",
         default = [],
     ),
     "data": attr.label_list(
-        doc = """Other libraries for the webpack compilation""",
+        doc = """Runtime dependencies which may be loaded during compliation.""",
         aspects = [module_mappings_aspect, node_modules_aspect],
         allow_files = True,
     ),
     "output_dir": attr.bool(),
     "entry_point": attr.label(
+        doc = """The point or points where to start the application bundling process.
+        
+See https://webpack.js.org/concepts/entry-points/""",
         allow_single_file = True,
     ),
     "entry_points": attr.label_keyed_string_dict(
@@ -29,15 +32,9 @@ See the <a href="https://webpack.js.org/api/cli/">Webpack CLI docs</a> for a com
         doc = """Experimental! Use only with caution.
 
 Allows you to enable the Bazel Worker strategy for this library.
-When enabled, this rule invokes the "webpack_worker_bin"
+When enabled, this rule invokes the "_webpack_worker_bin"
 worker aware binary rather than "webpack_bin".""",
         default = False,
-    ),
-    "webpack_worker_bin": attr.label(
-        doc = "Internal use only",
-        executable = True,
-        cfg = "exec",
-        default = Label("//@aspect-build/webpack/bin:webpack-worker"),
     ),
     "webpack_cli_bin": attr.label(
         doc = "Target that executes the webpack-cli binary",
@@ -46,14 +43,25 @@ worker aware binary rather than "webpack_bin".""",
         default = Label("//webpack-cli/bin:webpack-cli"),
     ),
     "webpack_config": attr.label(
+        doc = """Webpack configuration file.
+        
+See https://webpack.js.org/configuration/""",
         allow_single_file = [".js"],
         mandatory = True,
     ),
+    "_webpack_worker_bin": attr.label(
+        doc = "Internal use only",
+        executable = True,
+        cfg = "exec",
+        default = Label("//@aspect-build/webpack/bin:webpack-worker"),
+    ),
     "_worker_webpack_config": attr.label(
+        doc = "Internal use only",
         allow_single_file = [".js"],
         default = "//@aspect-build/webpack/webpack/worker:webpack.config.js",
     ),
     "_webpack_config_file": attr.label(
+        doc = "Internal use only",
         allow_single_file = [".js"],
         default = "//@aspect-build/webpack/webpack:webpack.config.js",
     ),
@@ -179,7 +187,7 @@ def _webpack_impl(ctx):
     execution_requirements = {}
 
     if ctx.attr.supports_workers:
-        executable = "webpack_worker_bin"
+        executable = "_webpack_worker_bin"
         execution_requirements["supports-workers"] = str(int(ctx.attr.supports_workers))
 
         args.add_all(["-c", ctx.file._worker_webpack_config.path])
@@ -232,4 +240,5 @@ webpack = rule(
     implementation = _webpack_impl,
     attrs = _ATTRS,
     outputs = _webpack_outs,
+    doc = "Runs the webpack-cli under bazel.",
 )
