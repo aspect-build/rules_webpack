@@ -1,6 +1,6 @@
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
-load("@npm//@bazel/webpack/webpack:defs.bzl", "webpack_bundle")
+load("@npm//@aspect-build/webpack/webpack:defs.bzl", "webpack_bundle")
 
 webpack_bundle(
     name = "bundle",

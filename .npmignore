@@ -1,4 +1,4 @@
-@bazel
+@aspect-build
 webpack-cli
 tests
 e2e
@@ -6,4 +6,8 @@ bazel-*
 node_modules
 WORKSPACE
 .*
-docs
+docs/*.bazel
+*.patch
+*.tgz
+/BUILD.bazel
+internal_*

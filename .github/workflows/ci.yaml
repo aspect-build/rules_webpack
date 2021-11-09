@@ -43,5 +43,5 @@ jobs:
         run: |
           npm pack
           cd e2e
-          npm install $(find ../ -name 'bazel-webpack*.tgz') --save-dev
+          npm install $(find ../ -name 'aspect-build-webpack*.tgz') --save-dev
           bazel --bazelrc=../.github/workflows/ci.bazelrc --bazelrc=../.bazelrc test //...

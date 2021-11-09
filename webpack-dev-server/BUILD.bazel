@@ -1,3 +1,5 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
 # This target is used locally by the repository to access webpack-cli.
 # directory is designed to match the userland external repository so that
 # we don't have to do label substitution in release packages.
@@ -13,4 +15,17 @@ alias(
 exports_files([
     "webpack.config.js",
     "entry_point.js",
+    "defs.bzl",
 ])
+
+bzl_library(
+    name = "defs-bzl",
+    srcs = [
+        "defs.bzl",
+        "@build_bazel_rules_nodejs//:bzl",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@bazel_skylib//rules:copy_file",
+    ],
+)

@@ -1,3 +1,5 @@
+"webpack_dev_server macro"
+
 load("@build_bazel_rules_nodejs//:index.bzl", "nodejs_binary")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 
@@ -7,8 +9,8 @@ def webpack_dev_server(
         args = [],
         data = [],
         tags = [],
-        ibazel_webpack_plugin = Label("//@bazel/webpack/webpack-dev-server:webpack.config.js"),
-        webpack_entry_point = Label("//@bazel/webpack/webpack-dev-server:entry_point.js"),
+        ibazel_webpack_plugin = Label("//@aspect-build/webpack/webpack-dev-server:webpack.config.js"),
+        webpack_entry_point = Label("//@aspect-build/webpack/webpack-dev-server:entry_point.js"),
         **kwargs):
     copied_entry_point_name = name + "_entry_point"
     copy_file(
