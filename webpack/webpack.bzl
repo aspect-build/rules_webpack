@@ -237,14 +237,14 @@ def _inputs(ctx):
         if DeclarationInfo in d:
             inputs_depsets.append(d[DeclarationInfo].declarations)
 
-    if DefaultInfo in dep:
-        default_info = dep[DefaultInfo]
-        if hasattr(default_info, "runfiles"):
-            # This is the preferred way, but old rules might still use `data_runfiles`
-            inputs_depsets.append(default_info.runfiles.files)
-        elif hasattr(default_info, "data_runfiles"):
-            # In case we depend on a rule not updated to the preferred way.
-            inputs_depsets.append(default_info.data_runfiles.files)
+        if DefaultInfo in d:
+            default_info = d[DefaultInfo]
+            if hasattr(default_info, "runfiles"):
+                # This is the preferred way, but old rules might still use `data_runfiles`
+                inputs_depsets.append(default_info.runfiles.files)
+            elif hasattr(default_info, "data_runfiles"):
+                # In case we depend on a rule not updated to the preferred way.
+                inputs_depsets.append(default_info.data_runfiles.files)
 
     return depset(ctx.files.data, transitive = inputs_depsets).to_list()
 
