@@ -65,6 +65,7 @@ See https://webpack.js.org/configuration/""",
         allow_single_file = [".js"],
         default = "//@aspect-build/webpack/webpack:webpack.config.js",
     ),
+    "ignore_compilation_mode": attr.bool(default = False),
 }
 
 def _desugar_entry_point_names(name, entry_point, entry_points):
@@ -171,17 +172,18 @@ def _webpack_impl(ctx):
     args.add_all(["-c", ctx.file.webpack_config.path])
     inputs.append(ctx.file.webpack_config)
 
-    # Change source-map and mode based on compilation mode
-    # See: https://docs.bazel.build/versions/main/user-manual.html#flag--compilation_mode
-    # See: https://webpack.js.org/configuration/devtool/#devtool
-    compilation_mode = ctx.var["COMPILATION_MODE"]
+    if not ctx.attr.ignore_compilation_mode:
+        # Change source-map and mode based on compilation mode
+        # See: https://docs.bazel.build/versions/main/user-manual.html#flag--compilation_mode
+        # See: https://webpack.js.org/configuration/devtool/#devtool
+        compilation_mode = ctx.var["COMPILATION_MODE"]
 
-    if compilation_mode == "fastbuild":
-        args.add_all(["--devtool", "eval", "--mode", "development"])
-    elif compilation_mode == "dbg":
-        args.add_all(["--devtool", "eval-source-map", "--mode", "development"])
-    elif compilation_mode == "opt":
-        args.add_all(["--no-devtool", "--mode", "production"])
+        if compilation_mode == "fastbuild":
+            args.add_all(["--devtool", "eval", "--mode", "development"])
+        elif compilation_mode == "dbg":
+            args.add_all(["--devtool", "eval-source-map", "--mode", "development"])
+        elif compilation_mode == "opt":
+            args.add_all(["--no-devtool", "--mode", "production"])
 
     executable = "webpack_cli_bin"
     execution_requirements = {}
