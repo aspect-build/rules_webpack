@@ -24,7 +24,7 @@ class IBazelPlugin {
   module.exports = {
     plugins: [new IBazelPlugin()],
     watchOptions: {
-      poll: 1,
+      poll: true,
     },
   }
   

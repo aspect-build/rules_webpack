@@ -1,6 +1,6 @@
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@bazel_skylib//rules:diff_test.bzl", "diff_test")
-load("@npm//@aspect-build/webpack/webpack:defs.bzl", "webpack_bundle")
+load("@npm//@aspect-build/webpack:index.bzl", "webpack_bundle", "webpack_dev_server")
 
 webpack_bundle(
     name = "bundle",
@@ -49,4 +49,16 @@ write_file(
 sh_binary(
     name = "update",
     srcs = ["update.sh"],
+)
+
+webpack_dev_server(
+    name = "dev_server",
+    args = [
+        "--mode=development",
+        "--entry=./$(rootpath module.js)",
+    ],
+    data = [
+        "module.js",
+    ],
+    webpack_config = ":webpack.config.js",
 )

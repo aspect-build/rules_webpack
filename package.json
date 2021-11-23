@@ -1,6 +1,6 @@
 {
   "name": "@aspect-build/webpack",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "EXPERIMENTAL: this repository is in early development and may be deleted and abandoned without warning. Do not depend on this yet.",
   "main": "index.js",
   "scripts": {
@@ -9,11 +9,13 @@
   "bin": {
     "webpack-worker": "./webpack/worker/worker_adapter.js"
   },
-  "dependencies": {
-    "@bazel/worker": "^4.2.0",
+  "peerDependencies": {
     "webpack": ">=5",
     "webpack-cli": ">=4",
     "webpack-dev-server": ">=4"
+  },
+  "dependencies": {
+    "@bazel/worker": "^4.2.0"
   },
   "devDependencies": {
     "@bazel/bazelisk": "^1.10.1"
