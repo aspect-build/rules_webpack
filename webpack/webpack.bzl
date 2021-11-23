@@ -1,7 +1,7 @@
 """Webpack bundle producing rule defintion."""
 
 load("@build_bazel_rules_nodejs//:providers.bzl", "DeclarationInfo", "ExternalNpmPackageInfo", "JSModuleInfo", "node_modules_aspect", "run_node")
-load("@build_bazel_rules_nodejs//internal/linker:link_node_modules.bzl", "module_mappings_aspect")
+load("@build_bazel_rules_nodejs//internal/linker:link_node_modules.bzl", "MODULE_MAPPINGS_ASPECT_RESULTS_NAME", "module_mappings_aspect")
 
 _ATTRS = {
     "args": attr.string_list(
@@ -130,6 +130,7 @@ def _webpack_outs(name, entry_point, entry_points, output_dir):
 def _webpack_impl(ctx):
     inputs = _inputs(ctx)
     outputs = [getattr(ctx.outputs, o) for o in dir(ctx.outputs)]
+    package_map = _packages(ctx)
 
     # See CLI documentation at https://webpack.js.org/api/cli/
     args = ctx.actions.args()
@@ -204,6 +205,11 @@ def _webpack_impl(ctx):
     # Merge all webpack configs
     args.add("--merge")
 
+    # Add module mappings as resolution aliases
+    for name, path in package_map.items():
+        args.add("--resolve-alias-alias", path)
+        args.add("--resolve-alias-name", name)
+
     run_node(
         ctx,
         progress_message = "Running Webpack [webpack-cli]",
@@ -247,6 +253,15 @@ def _inputs(ctx):
                 inputs_depsets.append(default_info.data_runfiles.files)
 
     return depset(ctx.files.data, transitive = inputs_depsets).to_list()
+
+def _packages(ctx):
+    package_map = {}
+    for dep in ctx.attr.data:
+        if hasattr(dep, MODULE_MAPPINGS_ASPECT_RESULTS_NAME):
+            for name, mapData in getattr(dep, MODULE_MAPPINGS_ASPECT_RESULTS_NAME).items():
+                # mapData is a tuple of (type, path).
+                package_map[name] = mapData[1]
+    return package_map
 
 webpack = rule(
     implementation = _webpack_impl,
