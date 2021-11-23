@@ -70,10 +70,12 @@ See https://webpack.js.org/configuration/""",
 def _desugar_entry_point_names(name, entry_point, entry_points):
     """Users can specify entry_point (sugar) or entry_points (long form).
 
-    This function allows our code to treat it like they always used the long form.
-
-    It also performs validation:
-    - exactly one of these attributes should be specified
+    Args:
+        name: ctx.attr.name
+        entry_point: ctx.attr.entry_point
+        entry_points: ctx.attr.entry_points
+    Returns:
+        A list of entry point names to pass to webpack
     """
     if entry_point and entry_points:
         fail("Cannot specify both entry_point and entry_points")
@@ -84,13 +86,16 @@ def _desugar_entry_point_names(name, entry_point, entry_points):
     return entry_points.values()
 
 def _desugar_entry_points(name, entry_point, entry_points, inputs):
-    """Like above, but used by the implementation function, where the types differ.
+    """Converts from dict[target: string] to dict[file: string] to a validated dict[file: string] for which every key corresponds to exactly one file.
 
-    It also performs validation:
-    - attr.label_keyed_string_dict doesn't accept allow_single_file
-      so we have to do validation now to be sure each key is a label resulting in one file
+    Args:
+        name: ctx.attr.name
+        entry_point: ctx.attr.entry_point
+        entry_points: ctx.attr.entry_points
+        inputs: _inputs(ctx)
+    Returns:
+        Dictionary mapping from file to target name.
 
-    It converts from dict[target: string] to dict[file: string]
     See: https://github.com/bazelbuild/bazel/issues/5355
     """
     names = _desugar_entry_point_names(name, entry_point.label if entry_point else None, entry_points)
