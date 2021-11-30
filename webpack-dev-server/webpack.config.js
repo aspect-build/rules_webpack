@@ -1,30 +1,34 @@
 class IBazelPlugin {
-    apply(compiler) {
-      compiler.hooks.afterEmit.tap('WebpackBazelPlugin', () => {
+  /** @param compiler {import("webpack").Compiler} */
+  apply(compiler) {
+
+    let running = false;
+
+    compiler.hooks.done.tap('WebpackBazelPlugin', () => {
+      if (!running) {
         compiler.watching.suspend();
-        return true;
-      });
-  
-      compiler.hooks.failed.tap('WebpackBazelPlugin', () => {
+      }
+      running = false;
+    });
+
+    compiler.hooks.watchRun.tap("WebpackBazelPlugin", () => {
+      running = true;
+    })
+
+    process.stdin.on('data', (chunk) => {
+      const chunkString = chunk.toString();
+      if (chunkString.indexOf('IBAZEL_BUILD_COMPLETED SUCCESS') !== -1) {
+        compiler.watching.resume();
+      } else if (chunkString.indexOf('IBAZEL_BUILD_STARTED') !== -1) {
         compiler.watching.suspend();
-        return true;
-      });
-  
-      process.stdin.on('data', chunk => {
-        const chunkString = chunk.toString();
-        if (chunkString.indexOf('IBAZEL_BUILD_COMPLETED SUCCESS') !== -1) {
-          compiler.watching.resume();
-        } else if (chunkString.indexOf('IBAZEL_BUILD_STARTED') !== -1) {
-          compiler.watching.suspend();
-        }
-      });
-    }
+      }
+    });
   }
-  
-  module.exports = {
-    plugins: [new IBazelPlugin()],
-    watchOptions: {
-      poll: 1,
-    },
-  }
-  
+}
+
+module.exports = {
+  plugins: [new IBazelPlugin()],
+  watchOptions: {
+    poll: true,
+  },
+};
