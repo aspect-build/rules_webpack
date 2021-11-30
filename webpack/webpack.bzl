@@ -207,7 +207,7 @@ def _webpack_impl(ctx):
 
     # Add module mappings as resolution aliases
     for name, path in package_map.items():
-        if supports_workers and name.startswith("@"):
+        if ctx.attr.supports_workers and name.startswith("@"):
             # Bazel sees params in a paramfile starting with "@" as file references
             # So double-up the "@" and remove it in the worker adapter.
             name = "@" + name
