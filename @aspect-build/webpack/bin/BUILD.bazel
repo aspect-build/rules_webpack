@@ -13,6 +13,6 @@ nodejs_binary(
         "@npm//webpack",
         "@npm//webpack-cli",
     ],
-    entry_point = "//webpack/worker:worker_adapter.js",
+    entry_point = "//@aspect-build/webpack/webpack/worker:worker_adapter.js",
     visibility = ["//visibility:public"],
 )

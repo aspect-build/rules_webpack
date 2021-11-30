@@ -5,8 +5,7 @@
     "test": "bazel test //..."
   },
   "devDependencies": {
-    "@aspect-build/webpack": "file:../aspect-build-webpack-0.1.1.tgz",
-    "@bazel/bazelisk": "^1.10.1",
+    "@aspect-build/webpack": "file:../aspect-build-webpack-0.2.0.tgz",
     "webpack": ">=5",
     "webpack-cli": ">=4",
     "webpack-dev-server": ">=4"
