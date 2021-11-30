@@ -43,6 +43,21 @@ function findWebpackConfigs(args) {
   return configs
 }
 
+/**
+ * Preprocesses args to undo modifications required by Bazel
+ * @param {string[]} args
+ * @returns {string[]} the processed arguments
+ */
+function cleanArgs(args) {
+  return args.map((arg) => {
+    // Undo "double-@" used to get around Bazel's file-references.
+    if (arg.startsWith("@@")) {
+      return arg.substring(1);
+    }
+    return arg;
+  })
+}
+
 function runAsPersistentWorker() {
   const webpackCliPath = require.resolve('webpack-cli/bin/cli.js')
   /** @type {string} */
@@ -58,6 +73,7 @@ function runAsPersistentWorker() {
    * @param inputs { [path: string]: string }
    */
   const build = async (args, inputs) => {
+    args = cleanArgs(args)
     return new Promise((resolve, reject) => {
       const configs = findWebpackConfigs(args)
 
@@ -138,7 +154,7 @@ function runStandalone() {
   if (argsFilePath.startsWith('@')) {
     argsFilePath = argsFilePath.slice(1)
   }
-  const args = fs.readFileSync(argsFilePath).toString().trim().split('\n')
+  const args = cleanArgs(fs.readFileSync(argsFilePath).toString().trim().split('\n'))
   new webpackCli().run([process.argv[0], process.argv[1], ...args])
 }
 
