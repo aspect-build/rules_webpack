@@ -1,7 +1,7 @@
 """Webpack bundle producing rule defintion."""
 
 load("@build_bazel_rules_nodejs//:providers.bzl", "DeclarationInfo", "ExternalNpmPackageInfo", "JSModuleInfo", "node_modules_aspect", "run_node")
-load("@build_bazel_rules_nodejs//internal/linker:link_node_modules.bzl", "MODULE_MAPPINGS_ASPECT_RESULTS_NAME", "module_mappings_aspect")
+load("@build_bazel_rules_nodejs//internal/linker:link_node_modules.bzl", "LinkerPackageMappingInfo", "module_mappings_aspect")
 
 _ATTRS = {
     "args": attr.string_list(
@@ -261,10 +261,11 @@ def _inputs(ctx):
 def _packages(ctx):
     package_map = {}
     for dep in ctx.attr.data:
-        if hasattr(dep, MODULE_MAPPINGS_ASPECT_RESULTS_NAME):
-            for name, mapData in getattr(dep, MODULE_MAPPINGS_ASPECT_RESULTS_NAME).items():
-                # mapData is a tuple of (type, path).
-                package_map[name] = mapData[1]
+        # Collect the path alias mapping to resolve packages correctly
+        if LinkerPackageMappingInfo in dep:
+            for key, value in dep[LinkerPackageMappingInfo].mappings.items():
+                # key is of format "package_name:package_path"
+                package_map[key.split(":")[0]] = value.replace(ctx.bin_dir.path + "/", "")
     return package_map
 
 webpack = rule(
