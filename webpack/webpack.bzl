@@ -263,9 +263,9 @@ def _packages(ctx):
     for dep in ctx.attr.data:
         # Collect the path alias mapping to resolve packages correctly
         if LinkerPackageMappingInfo in dep:
-            for key, value in dep[LinkerPackageMappingInfo].mappings.items():
+            for key, linked_path in dep[LinkerPackageMappingInfo].mappings.items():
                 # key is of format "package_name:package_path"
-                package_map[key.split(":")[0]] = value.replace(ctx.bin_dir.path + "/", "")
+                package_map[key.split(":")[0]] = linked_path
     return package_map
 
 webpack = rule(
