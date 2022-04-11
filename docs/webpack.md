@@ -1,6 +1,6 @@
 <!-- Generated with Stardoc: http://skydoc.bazel.build -->
 
-Webpack bundle producing rule defintion.
+Webpack bundle producing rule definition.
 
 <a id="#webpack"></a>
 

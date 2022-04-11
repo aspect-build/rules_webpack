@@ -1,4 +1,4 @@
-"""Webpack bundle producing rule defintion."""
+"""Webpack bundle producing rule definition."""
 
 load("@build_bazel_rules_nodejs//:providers.bzl", "DeclarationInfo", "ExternalNpmPackageInfo", "JSModuleInfo", "node_modules_aspect", "run_node")
 load("@build_bazel_rules_nodejs//internal/linker:link_node_modules.bzl", "module_mappings_aspect")
@@ -55,15 +55,14 @@ See https://webpack.js.org/configuration/""",
         cfg = "exec",
         default = Label("//@aspect-build/webpack/bin:webpack-worker"),
     ),
-    "_worker_webpack_config": attr.label(
-        doc = "Internal use only",
-        allow_single_file = [".js"],
-        default = "//@aspect-build/webpack/webpack/worker:webpack.config.js",
-    ),
     "_webpack_config_file": attr.label(
         doc = "Internal use only",
         allow_single_file = [".js"],
         default = "//@aspect-build/webpack/webpack:webpack.config.js",
+    ),
+    "_link_modules_script": attr.label(
+        default = Label("@build_bazel_rules_nodejs//internal/linker:index.js"),
+        allow_single_file = True,
     ),
 }
 
@@ -185,13 +184,15 @@ def _webpack_impl(ctx):
 
     executable = "webpack_cli_bin"
     execution_requirements = {}
+    env = {
+        "COMPILATION_MODE": ctx.var["COMPILATION_MODE"],
+    }
 
     if ctx.attr.supports_workers:
         executable = "_webpack_worker_bin"
         execution_requirements["supports-workers"] = str(int(ctx.attr.supports_workers))
-
-        args.add_all(["-c", ctx.file._worker_webpack_config.path])
-        inputs.append(ctx.file._worker_webpack_config)
+        env["_LINKER_PATH"] = ctx.file._link_modules_script.path
+        env["MODULES_MANIFEST"] = "/".join([ctx.bin_dir.path, ctx.label.package, "_%s.module_mappings.json" % ctx.label.name])
 
     if ctx.attr.output_dir:
         outputs = [ctx.actions.declare_directory(ctx.attr.name)]
@@ -208,10 +209,11 @@ def _webpack_impl(ctx):
         executable = executable,
         inputs = inputs,
         outputs = outputs,
+        tools = [ctx.file._link_modules_script],
         arguments = [args],
         mnemonic = "webpack",
         execution_requirements = execution_requirements,
-        env = {"COMPILATION_MODE": ctx.var["COMPILATION_MODE"]},
+        env = env,
     )
 
     return [DefaultInfo(files = depset(outputs))]
