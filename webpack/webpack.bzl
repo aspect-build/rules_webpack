@@ -197,7 +197,7 @@ def _webpack_impl(ctx):
         executable = "_webpack_worker_bin"
         execution_requirements["supports-workers"] = str(int(ctx.attr.supports_workers))
         env["_LINKER_PATH"] = ctx.file._link_modules_script.path
-        env["MODULES_MANIFEST"] = "/".join([ctx.bin_dir.path, ctx.label.package, "_%s.module_mappings.json" % ctx.label.name])
+        env["_MODULES_MANIFEST"] = "/".join([ctx.bin_dir.path, ctx.label.package, "_%s.module_mappings.json" % ctx.label.name])
 
     if ctx.attr.output_dir:
         outputs = [ctx.actions.declare_directory(ctx.attr.name)]

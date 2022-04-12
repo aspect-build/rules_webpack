@@ -77,7 +77,7 @@ async function runAsPersistentWorker() {
     worker.log(`[${MNEMONIC}] ${rootPath}`)
     if (!fs.existsSync(execrootNodeModules)) {
       worker.log(`[${MNEMONIC}] execroot/node_modules is missing relinking.`)
-      await Linker.main([process.env.MODULES_MANIFEST], Runfiles)
+      await Linker.main([process.env._MODULES_MANIFEST], Runfiles)
       worker.log(`[${MNEMONIC}] execroot/node_modules is missing relinked.`)
     }
 

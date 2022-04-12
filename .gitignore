@@ -2,3 +2,4 @@ bazel-*
 node_modules
 .DS_Store
 aspect-build-webpack-*
+.bazelrc.user
