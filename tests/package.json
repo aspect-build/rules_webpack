@@ -1,5 +1,9 @@
 {
     "dependencies": {
-        "js-yaml": "^4.1.0"
+        "js-yaml": "^4.1.0",
+        "@bazel/worker": "^4.2.0",
+        "webpack": ">=5",
+        "webpack-cli": ">=4",
+        "webpack-dev-server": ">=4"
     }
 }
