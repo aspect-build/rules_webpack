@@ -22,6 +22,9 @@ class WorkerAwareCLI extends WebpackCLI {
   /** @type {import("webpack").Compiler | null} */
   compiler = null
 
+  /** @type {{[k: string]: unknown} | null} */
+  options = null
+
   /** @type {Function | null} */
   resolve = null
   /** @type {Function | null} */
@@ -42,12 +45,35 @@ class WorkerAwareCLI extends WebpackCLI {
     }
   }
 
+  async teardown() {
+    await new Promise((resolve, reject) =>
+      this.compiler.close((e) => {
+        if (e) {
+          return reject(e)
+        }
+        resolve()
+      })
+    )
+    this.compiler = null
+    this.options = null
+  }
+
   async createCompiler(options) {
+    if (
+      this.options != null &&
+      JSON.stringify(options) != JSON.stringify(this.options)
+    ) {
+      worker.log(
+        `[${MNEMONIC}] options have changed. discarding webpack cache.`
+      )
+      await this.teardown()
+    }
     const cb = (err, stats) => this.callback(err, stats)
     if (this.compiler) {
       this.compiler.run(cb)
     } else {
       this.compiler = await super.createCompiler(options, cb)
+      this.options = options
     }
   }
 }
@@ -63,8 +89,9 @@ function main() {
 }
 
 async function runAsPersistentWorker() {
-  const wp = new WorkerAwareCLI()
-  let hashMap
+  const cli = new WorkerAwareCLI()
+  /** @type {import("@bazel/worker").Inputs} */
+  let inputMap
   const rootPath = process.cwd()
   const execrootNodeModules = path.join(rootPath, 'node_modules')
 
@@ -74,47 +101,63 @@ async function runAsPersistentWorker() {
    */
   const build = async (args, inputs) => {
     worker.log(`[${MNEMONIC}] Building`)
-    worker.log(`[${MNEMONIC}] ${rootPath}`)
     if (!fs.existsSync(execrootNodeModules)) {
-      worker.log(`[${MNEMONIC}] execroot/node_modules is missing relinking.`)
+      worker.log(
+        `[${MNEMONIC}] Looks like execroot has been pruned. Running the linker.`
+      )
       await Linker.main([process.env._MODULES_MANIFEST], Runfiles)
-      worker.log(`[${MNEMONIC}] execroot/node_modules is missing relinked.`)
     }
 
     // only diff in subsequent builds
-    if (hashMap) {
+    if (inputMap) {
       const changes = new Set()
       const removals = new Set()
-      for (const input of Object.keys(hashMap)) {
+      for (const input of Object.keys(inputMap)) {
         const absolutePath = path.join(rootPath, input)
         if (!inputs[input]) {
-          wp.compiler.inputFileSystem.purge(absolutePath)
+          cli.compiler.inputFileSystem.purge(absolutePath)
           removals.add(absolutePath)
         }
       }
       for (const [input, digest] of Object.entries(inputs)) {
         const absolutePath = path.join(rootPath, input)
-        if (hashMap[input] != digest) {
-          wp.compiler.inputFileSystem.purge(absolutePath)
+        if (inputMap[input] != digest) {
+          cli.compiler.inputFileSystem.purge(absolutePath)
           changes.add(absolutePath)
         }
       }
-      wp.compiler.modifiedFiles = changes
-      wp.compiler.removedFiles = removals
+      cli.compiler.modifiedFiles = changes
+      cli.compiler.removedFiles = removals
+      let hasConfigChanges = false
+      for (const config of cli.options.config) {
+        const configPath = path.join(rootPath, config)
+        if (changes.has(configPath) || removals.has(configPath)) {
+          hasConfigChanges = true
+          worker.log(
+            `[${MNEMONIC}] config ${config} has changed. webpack cache will be discarded.`
+          )
+        }
+      }
+      if (hasConfigChanges) {
+        worker.log(
+          `[${MNEMONIC}] one or more configs have changed. discarding webpack cache.`
+        )
+        await cli.teardown()
+      }
     }
 
-    if (wp.compiler) {
+    if (cli.compiler) {
       await new Promise((resolve, reject) =>
-        wp.compiler.cache.endIdle((err) => {
+        cli.compiler.cache.endIdle((err) => {
           if (err) {
             return reject(err)
           }
-          wp.compiler.idle = false
+          cli.compiler.idle = false
           resolve()
         })
       )
       await new Promise((resolve, reject) =>
-        wp.compiler.readRecords((err) => {
+        cli.compiler.readRecords((err) => {
           if (err) {
             return reject(err)
           }
@@ -122,15 +165,15 @@ async function runAsPersistentWorker() {
         })
       )
 
-      wp.compiler.fsStartTime = Date.now()
+      cli.compiler.fsStartTime = Date.now()
     }
 
-    hashMap = inputs
+    inputMap = inputs
 
     return new Promise((resolve, reject) => {
-      wp.resolve = resolve
-      wp.reject = reject
-      wp.run([process.argv[0], process.argv[1], ...args])
+      cli.resolve = resolve
+      cli.reject = reject
+      cli.run([process.argv[0], process.argv[1], ...args])
     })
   }
   worker.runWorkerLoop(build)

@@ -196,8 +196,15 @@ def _webpack_impl(ctx):
     if ctx.attr.supports_workers:
         executable = "_webpack_worker_bin"
         execution_requirements["supports-workers"] = str(int(ctx.attr.supports_workers))
+        # Path to the linker script which will be required by the adapter to rerun the linker.
         env["_LINKER_PATH"] = ctx.file._link_modules_script.path
-        env["_MODULES_MANIFEST"] = "/".join([ctx.bin_dir.path, ctx.label.package, "_%s.module_mappings.json" % ctx.label.name])
+        # Path to the module manifest file which is written by run_node and passed to the linker
+        # See: https://github.com/bazelbuild/rules_nodejs/blob/43e478dd48cea53dbcc580da92ccb517534b832d/internal/linker/link_node_modules.bzl#L157-L167
+        env["_MODULES_MANIFEST"] = "/".join([
+            ctx.bin_dir.path, 
+            ctx.label.package, 
+            "_%s_webpack.module_mappings.json" % ctx.label.name
+        ])
 
     if ctx.attr.output_dir:
         outputs = [ctx.actions.declare_directory(ctx.attr.name)]

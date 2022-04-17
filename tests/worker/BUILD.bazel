@@ -10,7 +10,7 @@ webpack_bundle(
         "chunks/3.js",
         "chunks/4.js",
         "module.js",
-        "@tests_npm//js-yaml"
+        "@npm//js-yaml"
     ],
     entry_points = {
         "index.js": "bundle",

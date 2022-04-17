@@ -39,17 +39,19 @@ jobs:
           # Bazelisk will download bazel to here
           XDG_CACHE_HOME: ~/.cache/bazel-repo
         run: |
-          set -e
+          set -o errexit
           npm pack
           cd e2e
           npm install $(find ../ -name 'aspect-build-webpack*.tgz')
           bazel --bazelrc=../.github/workflows/ci.bazelrc --bazelrc=../.bazelrc test //...
           # make sure that webpack in worker mode builds in subsequent invocations.
           echo console.log\(\"$(date)\"\) > ./test/module.js
+          # if bazel does not fail, then block will be executed. which is not what we expect to 
+          # happen if webpack caughts the change.
           if bazel test //...; then 
-              echo "###########################"
-              echo "expected bazel test to fail but it didn't"
-              exit 1
+            echo "###########################"
+            echo "expected bazel test to fail but it didn't"
+            exit 1
           fi
           # now update check-in files for tests to pass
           bazel --bazelrc=../.github/workflows/ci.bazelrc --bazelrc=../.bazelrc run //test:update

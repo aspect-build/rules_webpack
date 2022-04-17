@@ -26,15 +26,10 @@ node_repositories(
 
 npm_install(
     name = "npm",
+    package_path = "/",
     package_json = "//:tests/package.json",
     package_lock_json = "//:tests/package-lock.json",
     symlink_node_modules = False,
-)
-
-npm_install(
-    name = "tests_npm",
-    package_json = "//:tests/package.json",
-    package_lock_json = "//:tests/package-lock.json",
 )
 
 # For running our own unit tests
