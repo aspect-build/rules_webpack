@@ -13,6 +13,11 @@ load("//webpack:repositories.bzl", "rules_webpack_dependencies")
 
 rules_webpack_dependencies()
 
+
+load("@build_bazel_rules_nodejs//:repositories.bzl", "build_bazel_rules_nodejs_dependencies")
+
+build_bazel_rules_nodejs_dependencies()
+
 load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "npm_install")
 
 node_repositories(
@@ -21,6 +26,7 @@ node_repositories(
 
 npm_install(
     name = "npm",
+    package_path = "/",
     package_json = "//:tests/package.json",
     package_lock_json = "//:tests/package-lock.json",
     symlink_node_modules = False,

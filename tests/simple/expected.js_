@@ -10,23 +10,23 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ "./tests/simple/index.js":
+/***/ 141:
 /*!*******************************!*\
   !*** ./tests/simple/index.js ***!
   \*******************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _module__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./module */ \"./tests/simple/module.js\");\n\n\nconsole.log(_module__WEBPACK_IMPORTED_MODULE_0__.c)\n\n\n//# sourceURL=webpack:///./tests/simple/index.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _module__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./module */ 596);\n\n\nconsole.log(_module__WEBPACK_IMPORTED_MODULE_0__.c)\n\n\n//# sourceURL=webpack://aspect_rules_webpack/./tests/simple/index.js?");
 
 /***/ }),
 
-/***/ "./tests/simple/module.js":
+/***/ 596:
 /*!********************************!*\
   !*** ./tests/simple/module.js ***!
   \********************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"c\": () => (/* binding */ c)\n/* harmony export */ });\nconst c = 'hmm'\n\n\n//# sourceURL=webpack:///./tests/simple/module.js?");
+eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"c\": () => (/* binding */ c)\n/* harmony export */ });\nconst c = 'hmm'\n\n\n//# sourceURL=webpack://aspect_rules_webpack/./tests/simple/module.js?");
 
 /***/ })
 
@@ -90,7 +90,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module can't be inlined because the eval devtool is used.
-/******/ 	var __webpack_exports__ = __webpack_require__("./tests/simple/index.js");
+/******/ 	var __webpack_exports__ = __webpack_require__(141);
 /******/ 	
 /******/ })()
 ;

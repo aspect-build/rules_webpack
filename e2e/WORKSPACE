@@ -2,16 +2,24 @@ workspace(
     name = "e2e",
 )
 
-# Used only so that we can load in rules_webpack_dependencies
-new_local_repository(
-    name = "rules_webpack",
-    build_file_content = "",
-    path = "../",
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+http_archive(
+    name = "bazel_skylib",
+    sha256 = "07b4117379dde7ab382345c3b0f5edfc6b7cff6c93756eac63da121e0bbcc5de",
+    strip_prefix = "bazel-skylib-1.1.1",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/archive/1.1.1.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/archive/1.1.1.tar.gz",
+    ],
 )
 
-load("@rules_webpack//webpack:repositories.bzl", "rules_webpack_dependencies")
+http_archive(
+    name = "build_bazel_rules_nodejs",
+    sha256 = "2644a66772938db8d8c760334a252f1687455daa7e188073f2d46283f2f6fbb7",
+    urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/4.6.2/rules_nodejs-4.6.2.tar.gz"],
+)
 
-rules_webpack_dependencies()
 
 load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "npm_install")
 
