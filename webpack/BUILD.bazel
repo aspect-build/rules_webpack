@@ -1,44 +1,30 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
-exports_files([
-    "webpack.config.js",
-    "webpack.bzl",
-])
-
-# This target is used locally by the repository to access webpack npm package.
-# directory is designed to match the userland external repository so that
-# we don't have to do label substitution in release packages.
-# this target represent the webpack entry in bin section of webpack npm package.
-# This is a npm_package_bin target in userland repository.
-# NOTE: this file is not meant to be released in the npm package. be careful
-alias(
-    name = "webpack",
-    actual = "@npm//webpack",
-    visibility = ["//visibility:public"],
-)
-
-bzl_library(
-    name = "webpack-bzl",
-    srcs = [
-        "webpack.bzl",
-        "@build_bazel_rules_nodejs//:bzl",
-    ],
-    visibility = ["//visibility:public"],
-)
+exports_files(["defs.bzl"])
 
 bzl_library(
     name = "defs",
     srcs = ["defs.bzl"],
     visibility = ["//visibility:public"],
-    deps = [":webpack-bzl"],
+    deps = [
+        "//webpack/private:webpack_bundle",
+        "//webpack/private/devserver"
+    ],
+)
+
+bzl_library(
+    name = "dependencies",
+    srcs = ["dependencies.bzl"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@bazel_tools//tools/build_defs/repo:http.bzl",
+        "@bazel_tools//tools/build_defs/repo:utils.bzl",
+    ],
 )
 
 bzl_library(
     name = "repositories",
     srcs = ["repositories.bzl"],
     visibility = ["//visibility:public"],
-    deps = [
-        "@bazel_tools//tools/build_defs/repo:http.bzl",
-        "@bazel_tools//tools/build_defs/repo:utils.bzl",
-    ],
+    deps = ["//webpack/private:versions"],
 )

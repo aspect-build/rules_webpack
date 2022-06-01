@@ -1,0 +1,18 @@
+load("//webpack:defs.bzl", "webpack_dev_server")
+
+
+webpack_dev_server(
+    name = "devserver",
+    args = [
+        "--mode=development",
+        "--entry=./$(execpath app.js)",
+        "--history-api-fallback",
+    ],
+    srcs = [
+        "app.js",
+        "index.html",
+    ],
+    deps = [
+        "@npm//js-yaml",
+    ] 
+)

@@ -1,0 +1,26 @@
+load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
+load("//webpack:defs.bzl", "webpack_bundle")
+
+webpack_bundle(
+    name = "bundle",
+    srcs = [
+        "chunks/1.js",
+        "chunks/2.js",
+        "chunks/3.js",
+        "chunks/4.js",
+        "module.js",
+        "@npm//js-yaml",
+    ],
+    entry_points = {
+        "index.js": "bundle",
+    },
+    supports_workers = True,
+    webpack_config = ":webpack.config.js",
+)
+
+write_source_files(
+    name = "write_bundle",
+    files = {
+        "expected.js_": ":bundle.js",
+    },
+)

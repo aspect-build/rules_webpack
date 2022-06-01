@@ -1,0 +1,5 @@
+load("@npm//:defs.bzl", "link_js_packages", "package", "package_dir")
+
+link_js_packages()
+
+exports_files(["pnpm-lock.yaml"])

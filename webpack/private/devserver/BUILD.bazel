@@ -1,0 +1,12 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+
+exports_files([
+    "webpack.config.js",
+])
+
+bzl_library(
+    name = "devserver",
+    srcs = ["devserver.bzl"],
+    visibility = ["//webpack:__subpackages__"],
+    deps = ["@aspect_rules_js//js:defs"],
+)

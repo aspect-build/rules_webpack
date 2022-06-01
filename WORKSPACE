@@ -9,27 +9,38 @@ load("//:internal_deps.bzl", "rules_webpack_internal_deps")
 
 rules_webpack_internal_deps()
 
-load("//webpack:repositories.bzl", "rules_webpack_dependencies")
+load("//webpack:dependencies.bzl", "rules_webpack_dependencies")
 
 rules_webpack_dependencies()
 
+load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
 
-load("@build_bazel_rules_nodejs//:repositories.bzl", "build_bazel_rules_nodejs_dependencies")
+rules_js_dependencies()
 
-build_bazel_rules_nodejs_dependencies()
+load("@rules_nodejs//nodejs:repositories.bzl", "DEFAULT_NODE_VERSION", "nodejs_register_toolchains")
 
-load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "npm_install")
-
-node_repositories(
-    node_version = "16.0.0",
+nodejs_register_toolchains(
+    name = "nodejs",
+    node_version = DEFAULT_NODE_VERSION,
 )
 
-npm_install(
+load("@aspect_rules_js//js:npm_import.bzl", "translate_pnpm_lock")
+
+translate_pnpm_lock(
     name = "npm",
-    package_path = "/",
-    package_json = "//:tests/package.json",
-    package_lock_json = "//:tests/package-lock.json",
-    symlink_node_modules = False,
+    pnpm_lock = "//webpack/tests:pnpm-lock.yaml",
+)
+
+load("@npm//:repositories.bzl", "npm_repositories")
+
+npm_repositories()
+
+
+load("//webpack:repositories.bzl", "webpack_register_toolchains", "LATEST_WEBPACK_VERSION")
+
+webpack_register_toolchains(
+    name = "webpack",
+    webpack_version = LATEST_WEBPACK_VERSION
 )
 
 # For running our own unit tests
