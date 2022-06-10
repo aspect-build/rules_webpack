@@ -1,6 +1,5 @@
 load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
 load("//webpack:defs.bzl", "webpack_bundle")
-#load("//webpack-dev-server:defs.bzl", "webpack_dev_server")
 
 webpack_bundle(
     name = "bundle",
@@ -16,18 +15,3 @@ write_source_files(
         "expected.js_": ":bundle.js",
     },
 )
-
-# webpack_dev_server(
-#     name = "dev_server",
-#     args = [
-#         "--entry",
-#         "./$(execpath index.js)",
-#         "--mode",
-#         "development",
-#     ],
-#     data = [
-#         "index.js",
-#         "module.js",
-#     ],
-#     webpack_config = ":webpack.config.js",
-# )

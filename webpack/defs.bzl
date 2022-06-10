@@ -18,7 +18,7 @@ Users should not load files under "/internal"
 """
 
 load("//webpack/private:webpack_bundle.bzl", _webpack_lib = "lib")
-load("//webpack/private/devserver:devserver.bzl", _webpack_dev_server = "webpack_dev_server")
+load("//webpack/private/devserver:devserver.bzl", _devserver_lib = "lib")
 
 webpack_bundle = rule(
     implementation = _webpack_lib.implementation,
@@ -28,4 +28,27 @@ webpack_bundle = rule(
 )
 
 
-webpack_dev_server = _webpack_dev_server
+webpack_dev_server_rule = rule(
+	implementation = _devserver_lib.implementation,
+	attrs = _devserver_lib.attrs,
+	executable = True,
+    toolchains = _devserver_lib.toolchains
+)
+
+
+def webpack_dev_server(webpack_repository = "webpack", **kwargs):
+    webpack_entry_point = "@{}//:entrypoint".format(webpack_repository)
+    deps = [
+        "@{}//:node_modules/webpack".format(webpack_repository),
+        "@{}//:node_modules/webpack-cli".format(webpack_repository),
+        "@{}//:node_modules/webpack-dev-server".format(webpack_repository),
+    ]
+    webpack_dev_server_rule(
+        enable_runfiles = select({
+            "@aspect_rules_js//js/private:enable_runfiles": True,
+            "//conditions:default": False,
+        }),
+        entry_point = webpack_entry_point,
+        data = kwargs.pop("data", []) + deps,
+        **kwargs
+    )

@@ -28,7 +28,7 @@ def rules_webpack_dependencies():
     maybe(
         http_archive,
         name = "aspect_rules_js",
-        sha256 = "5c839b68b862c293de0f3ae3ebe38cd9678ca3fb24182d16ddfe75988c3e83b6",
-        strip_prefix = "rules_js-0.7.2",
-        url = "https://github.com/aspect-build/rules_js/archive/refs/tags/v0.7.2.tar.gz",
+        sha256 = "f4693a937c5852e660d1da773436fc3dc3a6274b25f735c233a8cffc12ed2dbb",
+        strip_prefix = "rules_js-0.11.0",
+        url = "https://github.com/aspect-build/rules_js/archive/refs/tags/v0.11.0.tar.gz",
     )

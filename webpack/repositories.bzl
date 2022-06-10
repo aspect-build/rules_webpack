@@ -14,17 +14,18 @@ def _webpack_repo_impl(repository_ctx):
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@aspect_bazel_lib//lib:directory_path.bzl", "directory_path")
 load("@aspect_rules_js//js:defs.bzl", "js_binary")
-load("@aspect_rules_webpack//webpack/private:{version}/defs.bzl", "link_js_packages")
-link_js_packages()
+load("@aspect_rules_webpack//webpack/private:{version}/defs.bzl", "npm_link_all_packages")
+npm_link_all_packages(name = "node_modules")
 
 directory_path(
     name = "entrypoint",
-    directory = ":jsp__webpack__dir",
+    directory = ":node_modules/webpack/dir",
     path = "bin/webpack.js",
+    visibility = ["//visibility:public"],
 )
 js_binary(
     name = "{name}",
-    data = ["//:jsp__webpack", "//:jsp__webpack-dev-server", "//:jsp__webpack-cli"],
+    data = [":node_modules/webpack", ":node_modules/webpack-dev-server", ":node_modules/webpack-cli"],
     entry_point = ":entrypoint",
     visibility = ["//visibility:public"],
 )
@@ -36,7 +37,7 @@ copy_file(
 )
 js_binary(
     name = "worker",
-    data = ["//:jsp__webpack", "//:jsp__webpack-cli", "//:jsp__at_bazel_worker"],
+    data = [":node_modules/webpack", ":node_modules/webpack-cli", ":node_modules/@bazel/worker"],
     entry_point = "copy_webpack_worker",
     visibility = ["//visibility:public"],
 )

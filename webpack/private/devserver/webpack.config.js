@@ -1,9 +1,7 @@
 class IBazelPlugin {
   /** @param compiler {import("webpack").Compiler} */
   apply(compiler) {
-
     let running = false;
-
     compiler.hooks.done.tap('WebpackBazelPlugin', () => {
       if (!running) {
         compiler.watching.suspend();
@@ -26,9 +24,10 @@ class IBazelPlugin {
   }
 }
 
+/** @type {import("webpack").Configuration} */
 module.exports = {
   plugins: [new IBazelPlugin()],
   watchOptions: {
     poll: true,
-  },
+  }
 };

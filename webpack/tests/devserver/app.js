@@ -1,6 +1,7 @@
-import {load} from "js-yaml";
+import {print} from "./helper";
 
-const yaml = load(`
-- test: 2
-`)
-console.log(yaml);
+print();
+
+if (module.hot) {
+    module.hot.accept('./helper.js', print);
+}

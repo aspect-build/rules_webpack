@@ -7,15 +7,15 @@ out="$SCRIPT_DIR/../webpack/private/v${version}"
 mkdir -p "$out"
 
 cd $(mktemp -d)
-npx pnpm install webpack webpack-cli webpack-dev-server @bazel/worker --lockfile-only
+npx pnpm install webpack@5.72.1 webpack-cli webpack-dev-server @bazel/worker --lockfile-only
 touch BUILD
 cat >WORKSPACE <<EOF
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
     name = "aspect_rules_js",
-    sha256 = "5c839b68b862c293de0f3ae3ebe38cd9678ca3fb24182d16ddfe75988c3e83b6",
-    strip_prefix = "rules_js-0.7.2",
-    url = "https://github.com/aspect-build/rules_js/archive/refs/tags/v0.7.2.tar.gz",
+    sha256 = "f4693a937c5852e660d1da773436fc3dc3a6274b25f735c233a8cffc12ed2dbb",
+    strip_prefix = "rules_js-0.11.0",
+    url = "https://github.com/aspect-build/rules_js/archive/refs/tags/v0.11.0.tar.gz",
 )
 load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
 rules_js_dependencies()
@@ -28,8 +28,8 @@ load("@aspect_bazel_lib//lib:repositories.bzl", "DEFAULT_YQ_VERSION", "register_
 register_yq_toolchains(
     version = DEFAULT_YQ_VERSION,
 )
-load("@aspect_rules_js//js:npm_import.bzl", "translate_pnpm_lock")
-translate_pnpm_lock(
+load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock")
+npm_translate_lock(
     name = "npm_webpack",
     pnpm_lock = "//:pnpm-lock.yaml",
 )

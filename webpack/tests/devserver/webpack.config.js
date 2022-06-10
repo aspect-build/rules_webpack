@@ -1,7 +1,11 @@
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+
+/** @type {import("webpack").Configuration} */
 module.exports = {
-    context: __dirname,
-    entry: "./app.js",
-    devServer: {
-      hot: true,
-    },
-};
+  plugins: [
+    new HtmlWebpackPlugin({
+      template: __dirname + '/index.html',
+    }),
+  ],
+  
+}

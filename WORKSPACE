@@ -24,9 +24,9 @@ nodejs_register_toolchains(
     node_version = DEFAULT_NODE_VERSION,
 )
 
-load("@aspect_rules_js//js:npm_import.bzl", "translate_pnpm_lock")
+load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock")
 
-translate_pnpm_lock(
+npm_translate_lock(
     name = "npm",
     pnpm_lock = "//webpack/tests:pnpm-lock.yaml",
 )
