@@ -36,11 +36,11 @@ load("@npm//:repositories.bzl", "npm_repositories")
 npm_repositories()
 
 
-load("//webpack:repositories.bzl", "webpack_register_toolchains", "LATEST_WEBPACK_VERSION")
+load("//webpack:repositories.bzl", "webpack_register_toolchains", "LATEST_VERSION")
 
 webpack_register_toolchains(
     name = "webpack",
-    webpack_version = LATEST_WEBPACK_VERSION
+    webpack_version = LATEST_VERSION
 )
 
 # For running our own unit tests

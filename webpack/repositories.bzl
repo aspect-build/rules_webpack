@@ -5,7 +5,7 @@ _ATTRS = {
     "webpack_version": attr.string(),
 }
 
-LATEST_WEBPACK_VERSION = WEBPACK_VERSIONS.keys()[-1]
+LATEST_VERSION = WEBPACK_VERSIONS.keys()[-1]
 
 def _webpack_repo_impl(repository_ctx):
     # Base BUILD file for this repository
@@ -17,17 +17,17 @@ load("@aspect_rules_js//js:defs.bzl", "js_binary")
 load("@aspect_rules_webpack//webpack/private:{version}/defs.bzl", "npm_link_all_packages")
 npm_link_all_packages(name = "node_modules")
 
+package(default_visibility = ["//visibility:public"])
+
 directory_path(
     name = "entrypoint",
     directory = ":node_modules/webpack/dir",
-    path = "bin/webpack.js",
-    visibility = ["//visibility:public"],
+    path = "bin/webpack.js"
 )
 js_binary(
     name = "{name}",
     data = [":node_modules/webpack", ":node_modules/webpack-dev-server", ":node_modules/webpack-cli"],
-    entry_point = ":entrypoint",
-    visibility = ["//visibility:public"],
+    entry_point = ":entrypoint"
 )
 
 copy_file(
@@ -38,8 +38,7 @@ copy_file(
 js_binary(
     name = "worker",
     data = [":node_modules/webpack", ":node_modules/webpack-cli", ":node_modules/@bazel/worker"],
-    entry_point = "copy_webpack_worker",
-    visibility = ["//visibility:public"],
+    entry_point = "copy_webpack_worker"
 )
 """.format(
         name = repository_ctx.attr.name,

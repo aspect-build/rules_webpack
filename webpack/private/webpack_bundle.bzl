@@ -113,7 +113,7 @@ def _desugar_entry_points(name, entry_point, entry_points):
 
 
 def _filter_js(files):
-    return [f for f in files if f.extension == "js" or f.extension == "mjs"]
+    return [f for f in files if f.extension == "js" or f.extension == "cjs" or f.extension == "mjs" or f.extension == "jsx"]
 
 def _outs(name, entry_point, entry_points, output_dir):
     """Supply some labelled outputs in the common case of a single entry point"""

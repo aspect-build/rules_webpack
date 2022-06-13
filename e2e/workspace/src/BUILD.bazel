@@ -1,0 +1,14 @@
+load("@aspect_rules_webpack//webpack:defs.bzl", "webpack_bundle")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+
+webpack_bundle(
+    name = "bundle",
+    entry_point = "index.js",
+    srcs = ["module.js"],
+    supports_workers = True,
+)
+
+build_test(
+    name = "test",
+    targets = [":bundle"],
+)

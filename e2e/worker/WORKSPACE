@@ -20,9 +20,9 @@ nodejs_register_toolchains(
 )
 
 # Fetch and register the webpack tool
-load("@aspect_rules_webpack//webpack:repositories.bzl", "webpack_register_toolchains", "LATEST_WEBPACK_VERSION")
+load("@aspect_rules_webpack//webpack:repositories.bzl", "webpack_register_toolchains", "LATEST_VERSION")
 
 webpack_register_toolchains(
     name = "webpack",
-    webpack_version = LATEST_WEBPACK_VERSION
+    webpack_version = LATEST_VERSION
 )
