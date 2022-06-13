@@ -1,8 +1,0 @@
-# This target is used locally by the repository to access worker adapter and config files.
-# directory is designed to match the userland external repository so that
-# we don't have to do label substitution in release packages.
-alias(
-    name = "worker_adapter.js",
-    actual = "//webpack/worker:worker_adapter.js",
-    visibility = ["//visibility:public"],
-)

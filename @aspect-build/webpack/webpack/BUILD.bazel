@@ -1,9 +1,0 @@
-# This target is used locally by the repository to access webpack_bundle.
-# this directory is designed to match the userland external repository so that
-# we don't have to do label substitution in release packages.
-
-alias(
-    name = "webpack.config.js",
-    actual = "//webpack:webpack.config.js",
-    visibility = ["//visibility:public"],
-)
