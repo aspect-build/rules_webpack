@@ -1,5 +1,5 @@
-load("v5.72.1/repositories.bzl", v5_72_1 = "npm_repositories")
+load("v5.73.0/repositories.bzl", v5_73_0 = "npm_repositories")
 
 WEBPACK_VERSIONS = {
-    "v5.72.1": v5_72_1,
+    "v5.73.0": v5_73_0,
 }

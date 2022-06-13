@@ -63,7 +63,7 @@
        this.options != null &&
        JSON.stringify(options) != JSON.stringify(this.options)
      ) {
-       worker.log(
+       worker.debug(
          `[${MNEMONIC}] options have changed. discarding webpack cache.`
        )
        await this.teardown()
@@ -72,7 +72,7 @@
      if (this.compiler) {
        this.compiler.run(cb)
      } else {
-       worker.log(options);
+       worker.debug(options);
        this.compiler = await super.createCompiler(options, cb)
        this.options = options
      }
@@ -88,7 +88,7 @@
  function createOrGetWorker(args) {
    const key = args[args.indexOf('-c') + 1]
    if (!workers.has(key)) {
-     worker.log(`Couldn't find a worker( for ${key}`);
+     worker.debug(`Couldn't find a worker for ${key}`);
      workers.set(key, new WebpackWorker());
    }
    return workers.get(key);
@@ -124,13 +124,13 @@
        const configPath = path.join(bazelBin, config)
        if (changes.has(configPath) || removals.has(configPath)) {
          hasConfigChanges = true
-         worker.log(
+         worker.debug(
            `Config ${config} has changed. webpack cache will be discarded.`
          )
        }
      }
      if (hasConfigChanges) {
-       worker.log(
+       worker.debug(
          `One or more configs have changed. discarding webpack cache.`
        )
        await wworker.teardown()
@@ -178,8 +178,8 @@
  }
  
  function emitOnce() {
-   worker.log(`Running ${MNEMONIC} as a standalone process`)
-   worker.log(
+   worker.debug(`Running ${MNEMONIC} as a standalone process`)
+   worker.debug(
      `Started a new process to perform this action. Your build might be misconfigured, try	
       --strategy=${MNEMONIC}=worker`
    )
