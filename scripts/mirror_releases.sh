@@ -13,9 +13,9 @@ cat >WORKSPACE <<EOF
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 http_archive(
     name = "aspect_rules_js",
-    sha256 = "6b218d2ab2e365807d1d403580b2c865a771e7fda9449171b2abd9765d0299b3",
-    strip_prefix = "rules_js-0.12.1",
-    url = "https://github.com/aspect-build/rules_js/archive/refs/tags/v0.12.1.tar.gz",
+    sha256 = "1fe40fd2819745ad19b5bec8f97a82087145fc6f145d3c84b0147899bf3490ca",
+    strip_prefix = "rules_js-0.13.0",
+    url = "https://github.com/aspect-build/rules_js/archive/refs/tags/v0.13.0.tar.gz",
 )
 load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
 rules_js_dependencies()
