@@ -10,5 +10,5 @@ _Need help?_ This ruleset has support provided by https://aspect.dev.
 
 ## API documentation
 
-- [webpack](docs/webpack.md)
-- [webpack-dev-server](docs/webpack-dev-server.md)
+- [webpack](https://github.com/aspect-build/rules_webpack/blob/main/docs/rules.md#webpack_bundle)
+- [webpack-dev-server](https://github.com/aspect-build/rules_webpack/blob/main/docs/rules.md#webpack_dev_server)
