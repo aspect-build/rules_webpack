@@ -48,8 +48,8 @@ def _impl(ctx):
 
     launcher = js_binary_lib.create_launcher(
         ctx,
-        log_prefix_rule_set = "aspect_rules_jest",
-        log_prefix_rule = "jest_test",
+        log_prefix_rule_set = "aspect_rules_webpack",
+        log_prefix_rule = "webpack_devserver",
         fixed_args = fixed_args,
     )
 
