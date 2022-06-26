@@ -22,7 +22,7 @@ See https://webpack.js.org/configuration/""",
     "_webpack_devserver_config": attr.label(
         doc = "Internal use only",
         allow_single_file = [".js"], 
-        default = Label("//webpack/private/devserver:webpack.config")
+        default = Label("//webpack/private/devserver:webpack.config.js")
     ),
 })
 
