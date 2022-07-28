@@ -40,7 +40,7 @@ Runs the webpack-cli under bazel.
 
 <pre>
 webpack_dev_server_rule(<a href="#webpack_dev_server_rule-name">name</a>, <a href="#webpack_dev_server_rule-chdir">chdir</a>, <a href="#webpack_dev_server_rule-data">data</a>, <a href="#webpack_dev_server_rule-enable_runfiles">enable_runfiles</a>, <a href="#webpack_dev_server_rule-entry_point">entry_point</a>, <a href="#webpack_dev_server_rule-env">env</a>, <a href="#webpack_dev_server_rule-expected_exit_code">expected_exit_code</a>,
-                        <a href="#webpack_dev_server_rule-log_level">log_level</a>, <a href="#webpack_dev_server_rule-node_options">node_options</a>, <a href="#webpack_dev_server_rule-srcs">srcs</a>, <a href="#webpack_dev_server_rule-webpack_config">webpack_config</a>)
+                        <a href="#webpack_dev_server_rule-log_level">log_level</a>, <a href="#webpack_dev_server_rule-node_options">node_options</a>, <a href="#webpack_dev_server_rule-patch_node_fs">patch_node_fs</a>, <a href="#webpack_dev_server_rule-srcs">srcs</a>, <a href="#webpack_dev_server_rule-webpack_config">webpack_config</a>)
 </pre>
 
 
@@ -59,6 +59,7 @@ webpack_dev_server_rule(<a href="#webpack_dev_server_rule-name">name</a>, <a hre
 | <a id="webpack_dev_server_rule-expected_exit_code"></a>expected_exit_code |  The expected exit code.<br><br>        Can be used to write tests that are expected to fail.   | Integer | optional | 0 |
 | <a id="webpack_dev_server_rule-log_level"></a>log_level |  Set the logging level.<br><br>        Log from are written to stderr. They will be supressed on success when running as the tool         of a js_run_binary when silent_on_success is True. In that case, they will be shown         only on a build failure along with the stdout & stderr of the node tool being run.   | String | optional | "error" |
 | <a id="webpack_dev_server_rule-node_options"></a>node_options |  Options to pass to the node.<br><br>        https://nodejs.org/api/cli.html   | List of strings | optional | [] |
+| <a id="webpack_dev_server_rule-patch_node_fs"></a>patch_node_fs |  Patch the to Node.js <code>fs</code> API (https://nodejs.org/api/fs.html) for this node program         to prevent the program from following symlinks out of the execroot, runfiles and the sandbox.<br><br>        When enabled, <code>js_binary</code> patches the Node.js sync and async <code>fs</code> API functions <code>lstat</code>,         <code>readlink</code>, <code>realpath</code>, <code>readdir</code> and <code>opendir</code> so that the node program being         run cannot resolve symlinks out of the execroot and the runfiles tree. When in the sandbox,         these patches prevent the program being run from resolving symlinks out of the sandbox.<br><br>        When disabled, node programs can leave the execroot, runfiles and sandbox by following symlinks         which can lead to non-hermetic behavior.   | Boolean | optional | True |
 | <a id="webpack_dev_server_rule-srcs"></a>srcs |  JavaScript source files from the workspace.   | <a href="https://bazel.build/docs/build-ref.html#labels">List of labels</a> | optional | [] |
 | <a id="webpack_dev_server_rule-webpack_config"></a>webpack_config |  Webpack configuration file.<br><br>See https://webpack.js.org/configuration/   | <a href="https://bazel.build/docs/build-ref.html#labels">Label</a> | optional | None |
 
