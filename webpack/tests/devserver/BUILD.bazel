@@ -1,22 +1,19 @@
 load("//webpack:defs.bzl", "webpack_dev_server")
 
-
 webpack_dev_server(
     name = "devserver",
-    webpack_config = ":webpack.config.js",
     args = [
         "--mode=development",
         "--entry=./webpack/tests/devserver/app.js",
         "--history-api-fallback",
-        "--no-live-reload"
+        "--no-live-reload",
     ],
-    srcs = [
+    data = [
         "app.js",
         "helper.js",
         "index.html",
-    ],
-    data = [
-        "//webpack/tests:node_modules/js-yaml",
         "//webpack/tests:node_modules/html-webpack-plugin",
-    ]
+        "//webpack/tests:node_modules/js-yaml",
+    ],
+    webpack_config = ":webpack.config.js",
 )
