@@ -8,5 +8,5 @@ bzl_library(
     name = "devserver",
     srcs = ["devserver.bzl"],
     visibility = ["//webpack:__subpackages__"],
-    deps = ["@aspect_rules_js//js:defs"],
+    deps = ["@aspect_rules_js//js:libs"],
 )

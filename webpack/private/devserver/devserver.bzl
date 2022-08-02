@@ -1,50 +1,48 @@
 "webpack_dev_server macro"
-load("@aspect_rules_js//js:defs.bzl", "js_binary_lib")
-load("@bazel_skylib//lib:dicts.bzl", "dicts")
 
+load("@aspect_rules_js//js:libs.bzl", "js_binary_lib", "js_lib_helpers")
+load("@bazel_skylib//lib:dicts.bzl", "dicts")
 
 _attrs = dicts.add(js_binary_lib.attrs, {
     "entry_point": attr.label(
         doc = "Internal use only",
         mandatory = True,
     ),
-    "srcs": attr.label_list(
-        doc = "JavaScript source files from the workspace.",
-        allow_files = True
-    ),
-	"webpack_config": attr.label(
+    "webpack_config": attr.label(
         doc = """Webpack configuration file.
         
 See https://webpack.js.org/configuration/""",
-		allow_single_file = [".js"],
-        mandatory = False
-	),
+        allow_single_file = [".js"],
+        mandatory = False,
+    ),
     "_webpack_devserver_config": attr.label(
         doc = "Internal use only",
-        allow_single_file = [".js"], 
-        default = Label("//webpack/private/devserver:webpack.config.js")
+        allow_single_file = [".js"],
+        default = Label("//webpack/private/devserver:webpack.config.js"),
     ),
 })
 
-
 def _impl(ctx):
-
     fixed_args = [
         "serve",
         "--output-path",
         "./dist",
-        "-c", 
-        ctx.file._webpack_devserver_config.short_path
+        "-c",
+        ctx.file._webpack_devserver_config.short_path,
     ]
 
-    files = ctx.files.srcs + ctx.files.data + [
-        ctx.file._webpack_devserver_config
-    ]
+    files = [ctx.file._webpack_devserver_config]
+    files.extend(ctx.files.data)
+    files.extend(js_lib_helpers.gather_files_from_js_providers(
+        targets = ctx.attr.data,
+        include_transitive_sources = ctx.attr.include_transitive_sources,
+        include_declarations = ctx.attr.include_declarations,
+        include_npm_linked_packages = ctx.attr.include_npm_linked_packages,
+    ))
 
     if ctx.attr.webpack_config:
         files.append(ctx.file.webpack_config)
         fixed_args.extend(["-c", ctx.file.webpack_config.short_path, "--merge"])
-
 
     launcher = js_binary_lib.create_launcher(
         ctx,
@@ -53,14 +51,19 @@ def _impl(ctx):
         fixed_args = fixed_args,
     )
 
-    runfiles = launcher.runfiles.merge(ctx.runfiles(
+    runfiles = ctx.runfiles(
         files = files,
-    ))
+    ).merge(launcher.runfiles).merge_all([
+        target[DefaultInfo].default_runfiles
+        for target in ctx.attr.data
+    ])
 
-    return [DefaultInfo(
-        executable = launcher.executable,
-        runfiles = runfiles
-    )]
+    return [
+        DefaultInfo(
+            executable = launcher.executable,
+            runfiles = runfiles,
+        ),
+    ]
 
 lib = struct(
     attrs = _attrs,
