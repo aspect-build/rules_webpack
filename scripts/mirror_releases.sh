@@ -39,14 +39,14 @@ register_yq_toolchains(
 load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock")
 
 npm_translate_lock(
-    name = "npm_webpack",
+    name = "npm_aspect_rules_webpack",
     pnpm_lock = "//:pnpm-lock.yaml",
 )
 
-load("@npm_webpack//:repositories.bzl", "npm_repositories")
+load("@npm_aspect_rules_webpack//:repositories.bzl", "npm_repositories")
 
 npm_repositories()
 EOF
-bazel fetch @npm_webpack//:all
-cp $(bazel info output_base)/external/npm_webpack/{defs,repositories}.bzl "$out"
+bazel fetch @npm_aspect_rules_webpack//:all
+cp $(bazel info output_base)/external/npm_aspect_rules_webpack/{defs,repositories}.bzl "$out"
 echo "Mirrored webpack version $version to $out. Now add it to webpack/private/versions.bzl"
