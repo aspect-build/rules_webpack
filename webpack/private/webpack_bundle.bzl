@@ -59,7 +59,7 @@ Allows you to enable the Bazel Worker strategy for this library.""",
         doc = """Webpack configuration file.
         
 See https://webpack.js.org/configuration/""",
-        allow_single_file = [".js"],
+        allow_single_file = True,
         mandatory = False,
     ),
     "_webpack_config_file": attr.label(
