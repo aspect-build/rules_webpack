@@ -1,8 +1,6 @@
 # Bazel rules for webpack
 
-EXPERIMENTAL: this repository is in early development and may be
-deleted and abandoned without warning.
-Do not depend on this yet.
+Note this repository is in early development and may still have breaking changes going forward.
 
 Ask in #javascript in slack.bazel.build if you'd like to contribute.
 
