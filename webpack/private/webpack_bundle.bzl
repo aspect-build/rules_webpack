@@ -230,13 +230,15 @@ def _impl(ctx):
         deps = [],
     )
 
-    npm_package_stores = js_lib_helpers.gather_npm_package_stores(
+    npm_package_store_deps = js_lib_helpers.gather_npm_package_store_deps(
         targets = ctx.attr.data,
     )
 
+    output_sources_depset = depset(output_sources)
+
     runfiles = js_lib_helpers.gather_runfiles(
         ctx = ctx,
-        sources = output_sources,
+        sources = output_sources_depset,
         data = ctx.attr.data,
         # Since we're bundling, we don't propogate any transitive runfiles from dependencies
         deps = [],
@@ -244,21 +246,22 @@ def _impl(ctx):
 
     return [
         js_info(
+            npm_linked_package_files = npm_linked_packages.direct_files,
             npm_linked_packages = npm_linked_packages.direct,
-            npm_package_stores = npm_package_stores.direct,
-            sources = output_sources,
+            npm_package_store_deps = npm_package_store_deps,
+            sources = output_sources_depset,
             # Since we're bundling, we don't propogate linked npm packages from dependencies since
             # they are bundled and the dependencies are dropped. If a subset of linked npm
             # dependencies are not bundled it is up the the user to re-specify these in `data` if
             # they are runtime dependencies to progagate to binary rules or `srcs` if they are to be
             # propagated to downstream build targets.
-            transitive_npm_linked_packages = npm_linked_packages.direct,
-            transitive_npm_package_stores = npm_package_stores.transitive,
+            transitive_npm_linked_package_files = npm_linked_packages.transitive_files,
+            transitive_npm_linked_packages = npm_linked_packages.transitive,
             # Since we're bundling, we don't propogate any transitive output_sources from dependencies
-            transitive_sources = output_sources,
+            transitive_sources = output_sources_depset,
         ),
         DefaultInfo(
-            files = depset(output_sources),
+            files = output_sources_depset,
             runfiles = runfiles,
         ),
     ]

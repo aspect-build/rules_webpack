@@ -31,14 +31,8 @@ def _impl(ctx):
         ctx.file._webpack_devserver_config.short_path,
     ]
 
-    files = [ctx.file._webpack_devserver_config]
-    files.extend(ctx.files.data)
-    files.extend(js_lib_helpers.gather_files_from_js_providers(
-        targets = ctx.attr.data,
-        include_transitive_sources = ctx.attr.include_transitive_sources,
-        include_declarations = ctx.attr.include_declarations,
-        include_npm_linked_packages = ctx.attr.include_npm_linked_packages,
-    ))
+    files = ctx.files.data[:]
+    files.append(ctx.file._webpack_devserver_config)
 
     if ctx.attr.webpack_config:
         files.append(ctx.file.webpack_config)
@@ -53,6 +47,12 @@ def _impl(ctx):
 
     runfiles = ctx.runfiles(
         files = files,
+        transitive_files = js_lib_helpers.gather_files_from_js_providers(
+            targets = ctx.attr.data,
+            include_transitive_sources = ctx.attr.include_transitive_sources,
+            include_declarations = ctx.attr.include_declarations,
+            include_npm_linked_packages = ctx.attr.include_npm_linked_packages,
+        ),
     ).merge(launcher.runfiles).merge_all([
         target[DefaultInfo].default_runfiles
         for target in ctx.attr.data
