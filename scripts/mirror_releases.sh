@@ -2,7 +2,7 @@
 set -o errexit -o nounset
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-version="$(curl --silent "https://registry.npmjs.org/webpack/latest" | jq --raw-output ".version")"
+version="${1:-$(curl --silent "https://registry.npmjs.org/webpack/latest" | jq --raw-output ".version")}"
 out="$SCRIPT_DIR/../webpack/private/v${version}"
 mkdir -p "$out"
 
@@ -14,9 +14,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "aspect_rules_js",
-    sha256 = "25bcb082d49616ac2da538bf7bdd33a9730c8884edbec787fec83db07e4f7f16",
-    strip_prefix = "rules_js-1.1.0",
-    url = "https://github.com/aspect-build/rules_js/archive/refs/tags/v1.1.0.tar.gz",
+    sha256 = "db9f446752fe4100320cf8487e8fd476b9af0adf6b99b601bcfd70b289bb0598",
+    strip_prefix = "rules_js-1.1.2",
+    url = "https://github.com/aspect-build/rules_js/archive/refs/tags/v1.1.2.tar.gz",
 )
 
 load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
