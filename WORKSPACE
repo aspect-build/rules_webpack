@@ -17,6 +17,10 @@ load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
 
 rules_js_dependencies()
 
+load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies")
+
+aspect_bazel_lib_dependencies(override_local_config_platform = True)
+
 load("@rules_nodejs//nodejs:repositories.bzl", "DEFAULT_NODE_VERSION", "nodejs_register_toolchains")
 
 nodejs_register_toolchains(
@@ -35,12 +39,11 @@ load("@npm//:repositories.bzl", "npm_repositories")
 
 npm_repositories()
 
-
-load("//webpack:repositories.bzl", "webpack_register_toolchains", "LATEST_VERSION")
+load("//webpack:repositories.bzl", "LATEST_VERSION", "webpack_register_toolchains")
 
 webpack_register_toolchains(
     name = "webpack",
-    webpack_version = LATEST_VERSION
+    webpack_version = LATEST_VERSION,
 )
 
 # For running our own unit tests
