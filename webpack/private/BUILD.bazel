@@ -11,6 +11,13 @@ bzl_library(
     ],
 )
 
+bzl_library(
+    name = "webpack_devserver",
+    srcs = ["webpack_devserver.bzl"],
+    visibility = ["//webpack:__subpackages__"],
+    deps = ["@aspect_rules_js//js:defs"],
+)
+
 exports_files([
     "webpack.config.js",
     "webpack_worker.js",

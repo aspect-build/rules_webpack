@@ -1,13 +1,8 @@
-load("//webpack:defs.bzl", "webpack_dev_server")
+load("//webpack:defs.bzl", "webpack_devserver")
 
-webpack_dev_server(
+webpack_devserver(
     name = "devserver",
-    args = [
-        "--mode=development",
-        "--entry=./webpack/tests/devserver/app.js",
-        "--history-api-fallback",
-        "--no-live-reload",
-    ],
+    chdir = package_name(),
     data = [
         "app.js",
         "helper.js",
