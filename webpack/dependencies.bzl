@@ -24,20 +24,21 @@ def rules_webpack_dependencies():
             "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
         ],
     )
+
     maybe(
         http_archive,
         name = "aspect_rules_js",
-        sha256 = "9d80f28eb59df0486cc1e8e82868e97d8167429ea309a7ae96dfac64ff73275b",
-        strip_prefix = "rules_js-1.4.0",
-        url = "https://github.com/aspect-build/rules_js/archive/refs/tags/v1.4.0.tar.gz",
+        sha256 = "d8eabcd1e05d93147505ea806fa21089926b771d8813f01b92af5dec36617033",
+        strip_prefix = "rules_js-1.6.3",
+        url = "https://github.com/aspect-build/rules_js/archive/refs/tags/v1.6.3.tar.gz",
     )
 
     maybe(
         http_archive,
         name = "aspect_bazel_lib",
-        sha256 = "79381b0975ba7d2d5653239e5bab12cf54d89b10217fe771b8edd95047a2e44b",
-        strip_prefix = "bazel-lib-1.12.1",
-        url = "https://github.com/aspect-build/bazel-lib/archive/refs/tags/v1.12.1.tar.gz",
+        sha256 = "eae670935704ce5f9d050b2c23d426b4ae453458830eebdaac1f11a6a9da150b",
+        strip_prefix = "bazel-lib-1.15.0",
+        url = "https://github.com/aspect-build/bazel-lib/archive/refs/tags/v1.15.0.tar.gz",
     )
 
     maybe(
