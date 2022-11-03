@@ -39,12 +39,13 @@ load("@npm//:repositories.bzl", "npm_repositories")
 
 npm_repositories()
 
-load("//webpack:repositories.bzl", "LATEST_VERSION", "webpack_register_toolchains")
+load("//webpack:repositories.bzl", "webpack_repositories")
 
-webpack_register_toolchains(
-    name = "webpack",
-    webpack_version = LATEST_VERSION,
-)
+webpack_repositories(name = "webpack")
+
+load("@webpack//:npm_repositories.bzl", webpack_npm_repositories = "npm_repositories")
+
+webpack_npm_repositories()
 
 # For running our own unit tests
 load("@bazel_skylib//lib:unittest.bzl", "register_unittest_toolchains")
@@ -58,6 +59,6 @@ load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 
 go_rules_dependencies()
 
-go_register_toolchains(version = "1.17.2")
+go_register_toolchains(version = "1.19.3")
 
 gazelle_dependencies()

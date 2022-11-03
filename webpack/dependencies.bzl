@@ -4,8 +4,7 @@ These are needed for local dev, and users must install them as well.
 See https://docs.bazel.build/versions/main/skylark/deploying.html#dependencies
 """
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
+load("//webpack/private:maybe.bzl", http_archive = "maybe_http_archive")
 
 # WARNING: any changes in this function may be BREAKING CHANGES for users
 # because we'll fetch a dependency which may be different from one that
@@ -15,35 +14,28 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 # and released only in semver majors.
 def rules_webpack_dependencies():
     # The minimal version of bazel_skylib we require
-    maybe(
-        http_archive,
+    http_archive(
         name = "bazel_skylib",
         sha256 = "74d544d96f4a5bb630d465ca8bbcfe231e3594e5aae57e1edbf17a6eb3ca2506",
-        urls = [
-            "https://github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
-            "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz",
-        ],
+        urls = ["https://github.com/bazelbuild/bazel-skylib/releases/download/1.3.0/bazel-skylib-1.3.0.tar.gz"],
     )
 
-    maybe(
-        http_archive,
+    http_archive(
         name = "aspect_rules_js",
-        sha256 = "d8eabcd1e05d93147505ea806fa21089926b771d8813f01b92af5dec36617033",
-        strip_prefix = "rules_js-1.6.3",
-        url = "https://github.com/aspect-build/rules_js/archive/refs/tags/v1.6.3.tar.gz",
+        sha256 = "a6c97d32e82f890bd3e62ab2bd1ab2610baf80c4ab9eaa9586685c5e0c7c5858",
+        strip_prefix = "rules_js-1.6.5",
+        url = "https://github.com/aspect-build/rules_js/archive/refs/tags/v1.6.5.tar.gz",
     )
 
-    maybe(
-        http_archive,
+    http_archive(
         name = "aspect_bazel_lib",
         sha256 = "eae670935704ce5f9d050b2c23d426b4ae453458830eebdaac1f11a6a9da150b",
         strip_prefix = "bazel-lib-1.15.0",
         url = "https://github.com/aspect-build/bazel-lib/archive/refs/tags/v1.15.0.tar.gz",
     )
 
-    maybe(
-        http_archive,
+    http_archive(
         name = "rules_nodejs",
-        sha256 = "bce105e7a3d2a3c5eb90dcd6436544bf11f82e97073fb29e4090321ba2b84d8f",
-        urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.6.0/rules_nodejs-core-5.6.0.tar.gz"],
+        sha256 = "50adf0b0ff6fc77d6909a790df02eefbbb3bc2b154ece3406361dda49607a7bd",
+        urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.7.1/rules_nodejs-core-5.7.1.tar.gz"],
     )
