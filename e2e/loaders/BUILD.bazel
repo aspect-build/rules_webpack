@@ -1,0 +1,82 @@
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@aspect_rules_webpack//webpack:defs.bzl", "webpack_bundle")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+
+npm_link_all_packages(name = "node_modules")
+
+webpack_bundle(
+    name = "css",
+    srcs = [
+        "src/component.js",
+        "src/styles.css",
+        ":node_modules/mini-css-extract-plugin/dir",
+    ],
+    entry_points = {
+        "src/component.js": "styles",
+    },
+    output_dir = True,
+    webpack_config = ":webpack.css.cjs",
+    deps = [
+        ":node_modules/css-loader",
+        ":node_modules/mini-css-extract-plugin",
+    ],
+)
+
+webpack_bundle(
+    name = "css_expected",
+    srcs = [
+        "src/component.js",
+        "src/styles.css",
+    ],
+    entry_points = {
+        "src/component.js": "styles",
+    },
+    output_dir = True,
+    webpack_config = ":webpack.css.cjs",
+    deps = [
+        ":node_modules/css-loader",
+        ":node_modules/mini-css-extract-plugin",
+    ],
+)
+
+webpack_bundle(
+    name = "basic",
+    srcs = [
+        "src/index.ts",
+        "tsconfig.json",
+    ],
+    entry_points = {
+        "src/index.ts": "index",
+    },
+    output_dir = True,
+    webpack_config = ":webpack.config.cjs",
+    deps = [
+        ":node_modules/ts-loader",
+    ],
+)
+
+webpack_bundle(
+    name = "basic_expected",
+    srcs = [
+        "src/index.ts",
+        "tsconfig.json",
+    ],
+    entry_points = {
+        "src/index.ts": "index",
+    },
+    output_dir = True,
+    webpack_config = ":webpack.config.cjs",
+    deps = [
+        ":node_modules/ts-loader",
+    ],
+)
+
+build_test(
+    name = "test",
+    targets = [
+        ":css",
+        ":css_expected",
+        ":basic",
+        ":basic_expected",
+    ],
+)
