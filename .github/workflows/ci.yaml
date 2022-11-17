@@ -44,6 +44,7 @@ jobs:
         bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions) }}
         folder:
           - '.'
+          - 'e2e/loaders'
           - 'e2e/workspace'
           - 'e2e/worker'
 

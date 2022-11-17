@@ -1,6 +1,6 @@
 """Webpack bundle producing rule definition."""
 
-load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_file_to_bin_action", "copy_files_to_bin_actions")
+load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_files_to_bin_actions")
 load("@aspect_rules_js//js:libs.bzl", "js_lib_helpers")
 load("@aspect_rules_js//js:providers.bzl", "JsInfo", "js_info")
 
@@ -22,7 +22,7 @@ You must not repeat file(s) passed to entry_point/entry_points.
         allow_files = True,
     ),
     "deps": attr.label_list(
-        doc = """Runtime dependencies which may be loaded during compliation.""",
+        doc = """Runtime dependencies which may be loaded during compilation.""",
         allow_files = True,
         providers = [JsInfo],
     ),
@@ -67,7 +67,6 @@ See https://webpack.js.org/configuration/""",
         allow_single_file = [".js"],
         default = Label("//webpack/private:webpack.config.js"),
     ),
-    "_windows_constraint": attr.label(default = "@platforms//os:windows"),
 }
 
 def _desugar_entry_point_names(name, entry_point, entry_points):
@@ -115,9 +114,6 @@ def _desugar_entry_points(name, entry_point, entry_points):
         result[f[0]] = name
     return result
 
-def _filter_js(files):
-    return [f for f in files if f.extension == "js" or f.extension == "cjs" or f.extension == "mjs" or f.extension == "jsx"]
-
 def _outs(name, entry_point, entry_points, output_dir):
     """Supply some labelled outputs in the common case of a single entry point"""
     result = {}
@@ -134,32 +130,22 @@ def _outs(name, entry_point, entry_points, output_dir):
     return result
 
 def _impl(ctx):
-    is_windows = ctx.target_platform_has_constraint(ctx.attr._windows_constraint[platform_common.ConstraintValueInfo])
-
-    input_sources = copy_files_to_bin_actions(ctx, ctx.files.srcs, is_windows = is_windows)
-    entry_point = copy_files_to_bin_actions(ctx, _filter_js(ctx.files.entry_point), is_windows = is_windows)
-    entry_points = copy_files_to_bin_actions(ctx, _filter_js(ctx.files.entry_points), is_windows = is_windows)
-    inputs = entry_point + entry_points + input_sources + ctx.files.deps
     output_sources = [getattr(ctx.outputs, o) for o in dir(ctx.outputs)]
-
-    # See CLI documentation at https://webpack.js.org/api/cli/
-    args = ctx.actions.args()
 
     # Desugar entrypoints
     entry_points = _desugar_entry_points(ctx.label.name, ctx.attr.entry_point, ctx.attr.entry_points).items()
-
     entry_mapping = {}
-
     for entry_point in entry_points:
-        inputs.append(entry_point[0])
-
         # TODO: find an idiomatic way to do this.
         entry_mapping[entry_point[1]] = "./%s" % (entry_point[0].short_path)
+
+    inputs = []
 
     # Expand webpack config for the entry mapping
     # NOTE: generated config should always come first as it provides sensible defaults under bazel which
     # users might want to override. Also, webpack_worker uses the first webpack config path as the worker key.
     config = ctx.actions.declare_file("%s.webpack.config.js" % ctx.label.name)
+    inputs.append(config)
     ctx.actions.expand_template(
         template = ctx.file._webpack_config_file,
         output = config,
@@ -168,14 +154,14 @@ def _impl(ctx):
         },
     )
 
+    # See CLI documentation at https://webpack.js.org/api/cli/
+    args = ctx.actions.args()
     args.add_all(["-c", config.short_path])
-    inputs.append(config)
 
     # Add user defined config as an input and argument
     if ctx.attr.webpack_config:
-        webpack_config_file = copy_file_to_bin_action(ctx, ctx.file.webpack_config, is_windows = is_windows)
-        args.add_all(["-c", webpack_config_file.short_path])
-        inputs.append(webpack_config_file)
+        args.add_all(["-c", ctx.file.webpack_config])
+        inputs.append(ctx.file.webpack_config)
 
         # Merge all webpack configs
         args.add("--merge")
@@ -212,6 +198,20 @@ def _impl(ctx):
         args.use_param_file("@%s", use_always = True)
         args.set_param_file_format("multiline")
 
+    inputs.extend(ctx.files.srcs)
+    inputs.extend(ctx.files.deps)
+    inputs.extend(ctx.files.entry_point)
+    inputs.extend(ctx.files.entry_points)
+    inputs = depset(
+        copy_files_to_bin_actions(ctx, inputs),
+        transitive = [js_lib_helpers.gather_files_from_js_providers(
+            targets = ctx.attr.srcs + ctx.attr.deps,
+            include_transitive_sources = True,
+            include_declarations = True,
+            include_npm_linked_packages = True,
+        )],
+    )
+
     ctx.actions.run(
         progress_message = "Running Webpack [Webpack]",
         executable = executable,
@@ -240,7 +240,7 @@ def _impl(ctx):
         ctx = ctx,
         sources = output_sources_depset,
         data = ctx.attr.data,
-        # Since we're bundling, we don't propogate any transitive runfiles from dependencies
+        # Since we're bundling, we don't propagate any transitive runfiles from dependencies
         deps = [],
     )
 
@@ -250,14 +250,14 @@ def _impl(ctx):
             npm_linked_packages = npm_linked_packages.direct,
             npm_package_store_deps = npm_package_store_deps,
             sources = output_sources_depset,
-            # Since we're bundling, we don't propogate linked npm packages from dependencies since
+            # Since we're bundling, we don't propagate linked npm packages from dependencies since
             # they are bundled and the dependencies are dropped. If a subset of linked npm
             # dependencies are not bundled it is up the the user to re-specify these in `data` if
-            # they are runtime dependencies to progagate to binary rules or `srcs` if they are to be
+            # they are runtime dependencies to propagate to binary rules or `srcs` if they are to be
             # propagated to downstream build targets.
             transitive_npm_linked_package_files = npm_linked_packages.transitive_files,
             transitive_npm_linked_packages = npm_linked_packages.transitive,
-            # Since we're bundling, we don't propogate any transitive output_sources from dependencies
+            # Since we're bundling, we don't propagate any transitive output_sources from dependencies
             transitive_sources = output_sources_depset,
         ),
         DefaultInfo(
@@ -265,13 +265,6 @@ def _impl(ctx):
             runfiles = runfiles,
         ),
     ]
-
-def _expand_locations(ctx, s):
-    # `.split(" ")` is a work-around https://github.com/bazelbuild/bazel/issues/10309
-    # _expand_locations returns an array of args to support $(execpaths) expansions.
-    # TODO: If the string has intentional spaces or if one or more of the expanded file
-    # locations has a space in the name, we will incorrectly split it into multiple arguments
-    return ctx.expand_location(s, targets = ctx.attr.deps).split(" ")
 
 lib = struct(
     implementation = _impl,
