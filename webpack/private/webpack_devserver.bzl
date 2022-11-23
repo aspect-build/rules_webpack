@@ -47,7 +47,7 @@ def webpack_devserver(
         unwind_chdir_prefix = "/".join([".."] * len(chdir.split("/"))) + "/"
 
     js_run_devserver(
-        name = "devserver",
+        name = name,
         tool = webpack,
         args = [
             "serve",
