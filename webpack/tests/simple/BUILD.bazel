@@ -7,6 +7,10 @@ webpack_bundle(
         "module.js",
     ],
     entry_point = "index.js",
+    env = {
+        "MY_ENV": "$(execpath :index.js)",
+    },
+    webpack_config = ":webpack.config.js",
 )
 
 write_source_files(
