@@ -1,6 +1,7 @@
 """Webpack bundle producing rule definition."""
 
 load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_files_to_bin_actions")
+load("@aspect_bazel_lib//lib:expand_make_vars.bzl", "expand_locations", "expand_variables")
 load("@aspect_rules_js//js:libs.bzl", "js_lib_helpers")
 load("@aspect_rules_js//js:providers.bzl", "JsInfo", "js_info")
 
@@ -27,6 +28,11 @@ You must not repeat file(s) passed to entry_point/entry_points.
         providers = [JsInfo],
     ),
     "data": js_lib_helpers.JS_LIBRARY_DATA_ATTR,
+    "env": attr.string_dict(
+        doc = """Environment variables of the action.
+
+        Subject to `$(location)` and make variable expansion.""",
+    ),
     "output_dir": attr.bool(),
     "entry_point": attr.label(
         doc = """The point or points where to start the application bundling process.
@@ -184,6 +190,12 @@ def _impl(ctx):
     else:
         args.add_all(["--output-path", output_sources[0].short_path[:-len(output_sources[0].basename)]])
 
+    env = {
+        "BAZEL_BINDIR": ctx.bin_dir.path,
+    }
+    for (key, value) in ctx.attr.env.items():
+        env[key] = " ".join([expand_variables(ctx, exp, attribute_name = "env") for exp in expand_locations(ctx, value, [ctx.attr.entry_point] + ctx.attr.srcs + ctx.attr.deps + ctx.attr.data).split(" ")])
+
     # Add user specified arguments after rule supplied arguments
     args.add_all(ctx.attr.args)
 
@@ -220,9 +232,7 @@ def _impl(ctx):
         arguments = [args],
         mnemonic = "Webpack",
         execution_requirements = execution_requirements,
-        env = {
-            "BAZEL_BINDIR": ctx.bin_dir.path,
-        },
+        env = env,
     )
 
     npm_linked_packages = js_lib_helpers.gather_npm_linked_packages(

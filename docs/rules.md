@@ -10,7 +10,7 @@ Users should not load files under "/internal"
 ## webpack_bundle
 
 <pre>
-webpack_bundle(<a href="#webpack_bundle-name">name</a>, <a href="#webpack_bundle-args">args</a>, <a href="#webpack_bundle-data">data</a>, <a href="#webpack_bundle-deps">deps</a>, <a href="#webpack_bundle-entry_point">entry_point</a>, <a href="#webpack_bundle-entry_points">entry_points</a>, <a href="#webpack_bundle-output_dir">output_dir</a>, <a href="#webpack_bundle-srcs">srcs</a>,
+webpack_bundle(<a href="#webpack_bundle-name">name</a>, <a href="#webpack_bundle-args">args</a>, <a href="#webpack_bundle-data">data</a>, <a href="#webpack_bundle-deps">deps</a>, <a href="#webpack_bundle-entry_point">entry_point</a>, <a href="#webpack_bundle-entry_points">entry_points</a>, <a href="#webpack_bundle-env">env</a>, <a href="#webpack_bundle-output_dir">output_dir</a>, <a href="#webpack_bundle-srcs">srcs</a>,
                <a href="#webpack_bundle-supports_workers">supports_workers</a>, <a href="#webpack_bundle-webpack">webpack</a>, <a href="#webpack_bundle-webpack_config">webpack_config</a>, <a href="#webpack_bundle-webpack_worker">webpack_worker</a>)
 </pre>
 
@@ -27,6 +27,7 @@ Runs the webpack-cli under bazel.
 | <a id="webpack_bundle-deps"></a>deps |  Runtime dependencies which may be loaded during compilation.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="webpack_bundle-entry_point"></a>entry_point |  The point or points where to start the application bundling process.<br><br>See https://webpack.js.org/concepts/entry-points/   | <a href="https://bazel.build/concepts/labels">Label</a> | optional | <code>None</code> |
 | <a id="webpack_bundle-entry_points"></a>entry_points |  -   | <a href="https://bazel.build/rules/lib/dict">Dictionary: Label -> String</a> | optional | <code>{}</code> |
+| <a id="webpack_bundle-env"></a>env |  Environment variables of the action.<br><br>        Subject to <code>$(location)</code> and make variable expansion.   | <a href="https://bazel.build/rules/lib/dict">Dictionary: String -> String</a> | optional | <code>{}</code> |
 | <a id="webpack_bundle-output_dir"></a>output_dir |  -   | Boolean | optional | <code>False</code> |
 | <a id="webpack_bundle-srcs"></a>srcs |  Non-entry point JavaScript source files from the workspace. You must not repeat file(s) passed to entry_point/entry_points.   | <a href="https://bazel.build/concepts/labels">List of labels</a> | optional | <code>[]</code> |
 | <a id="webpack_bundle-supports_workers"></a>supports_workers |  Experimental! Use only with caution.<br><br>Allows you to enable the Bazel Worker strategy for this library.   | Boolean | optional | <code>False</code> |
