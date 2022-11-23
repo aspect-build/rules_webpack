@@ -1,0 +1,42 @@
+# Override http_archive for local testing
+local_repository(
+    name = "aspect_rules_webpack",
+    path = "../..",
+)
+
+# Fetch the Bazel module dependencies
+
+load("@aspect_rules_webpack//webpack:dependencies.bzl", "rules_webpack_dependencies")
+
+rules_webpack_dependencies()
+
+# Fetch and register a nodejs interpreter, if you haven't already
+
+load("@rules_nodejs//nodejs:repositories.bzl", "DEFAULT_NODE_VERSION", "nodejs_register_toolchains")
+
+nodejs_register_toolchains(
+    name = "node",
+    node_version = DEFAULT_NODE_VERSION,
+)
+
+# Fetch and register the webpack tool
+load("@aspect_rules_webpack//webpack:repositories.bzl", "webpack_repositories")
+
+webpack_repositories(name = "webpack")
+
+load("@webpack//:npm_repositories.bzl", webpack_npm_repositories = "npm_repositories")
+
+webpack_npm_repositories()
+
+# brought as a dep by webpack ruleset
+load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock")
+
+npm_translate_lock(
+    name = "npm",
+    no_optional = True,
+    pnpm_lock = "@//:pnpm-lock.yaml",
+    pnpm_version = "6.29.1",
+)
+
+load("@npm//:repositories.bzl", "npm_repositories")
+npm_repositories()
