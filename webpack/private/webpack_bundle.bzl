@@ -164,7 +164,6 @@ def _impl(ctx):
     entry_mapping = {}
     for entry_point in entry_points:
         # TODO: find an idiomatic way to do this.
-        #entry_mapping[entry_point[1]] = "./%s" % paths.relativize(entry_point[0].short_path, ctx.attr.chdir)
         entry_mapping[entry_point[1]] = "./%s" % _relpath(ctx, entry_point[0])
 
     inputs = []
