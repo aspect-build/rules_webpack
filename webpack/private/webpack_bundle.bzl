@@ -219,7 +219,8 @@ def _impl(ctx):
         transitive = [js_lib_helpers.gather_files_from_js_providers(
             targets = ctx.attr.srcs + ctx.attr.deps,
             include_transitive_sources = True,
-            include_declarations = True,
+            # Upstream Type-check actions should not be triggered by bundling
+            include_declarations = False,
             include_npm_linked_packages = True,
         )],
     )
