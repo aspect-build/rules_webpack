@@ -2,6 +2,7 @@
 
 load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_files_to_bin_actions")
 load("@aspect_bazel_lib//lib:expand_make_vars.bzl", "expand_locations", "expand_variables")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@aspect_rules_js//js:libs.bzl", "js_lib_helpers")
 load("@aspect_rules_js//js:providers.bzl", "JsInfo", "js_info")
 
@@ -27,6 +28,7 @@ You must not repeat file(s) passed to entry_point/entry_points.
         allow_files = True,
         providers = [JsInfo],
     ),
+    "chdir": attr.string(),
     "data": js_lib_helpers.JS_LIBRARY_DATA_ATTR,
     "env": attr.string_dict(
         doc = """Environment variables of the action.
@@ -135,6 +137,12 @@ def _outs(name, entry_point, entry_points, output_dir):
         result[out] = out + ".js"
     return result
 
+def _relpath(ctx, file):
+    """Path from the working directory to a given file object"""
+    if type(file) != "File":
+        fail("Expected {} to be of type File, not {}".format(file, type(file)))
+    return paths.relativize(file.short_path, ctx.attr.chdir)
+
 def _impl(ctx):
     output_sources = [getattr(ctx.outputs, o) for o in dir(ctx.outputs)]
 
@@ -143,7 +151,8 @@ def _impl(ctx):
     entry_mapping = {}
     for entry_point in entry_points:
         # TODO: find an idiomatic way to do this.
-        entry_mapping[entry_point[1]] = "./%s" % (entry_point[0].short_path)
+        #entry_mapping[entry_point[1]] = "./%s" % paths.relativize(entry_point[0].short_path, ctx.attr.chdir)
+        entry_mapping[entry_point[1]] = "./%s" % _relpath(ctx, entry_point[0])
 
     inputs = []
 
@@ -162,11 +171,11 @@ def _impl(ctx):
 
     # See CLI documentation at https://webpack.js.org/api/cli/
     args = ctx.actions.args()
-    args.add_all(["-c", config.short_path])
+    args.add_all(["-c", _relpath(ctx, config)])
 
     # Add user defined config as an input and argument
     if ctx.attr.webpack_config:
-        args.add_all(["-c", ctx.file.webpack_config])
+        args.add_all(["-c", _relpath(ctx, ctx.file.webpack_config)])
         inputs.append(ctx.file.webpack_config)
 
         # Merge all webpack configs
@@ -186,13 +195,16 @@ def _impl(ctx):
 
     if ctx.attr.output_dir:
         output_sources = [ctx.actions.declare_directory(ctx.attr.name)]
-        args.add_all(["--output-path", output_sources[0].short_path])
+        args.add_all(["--output-path", _relpath(ctx, output_sources[0])])
     else:
-        args.add_all(["--output-path", output_sources[0].short_path[:-len(output_sources[0].basename)]])
+        # trim suffix "bundle.js" so that webpack is given a directory to write into
+        args.add_all(["--output-path", paths.dirname(_relpath(ctx, output_sources[0]))])
 
     env = {
         "BAZEL_BINDIR": ctx.bin_dir.path,
     }
+    if ctx.attr.chdir:
+        env["JS_BINARY__CHDIR"] = ctx.attr.chdir
     for (key, value) in ctx.attr.env.items():
         env[key] = " ".join([expand_variables(ctx, exp, attribute_name = "env") for exp in expand_locations(ctx, value, [ctx.attr.entry_point] + ctx.attr.srcs + ctx.attr.deps + ctx.attr.data).split(" ")])
 
