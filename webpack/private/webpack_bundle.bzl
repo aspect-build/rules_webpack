@@ -28,7 +28,20 @@ You must not repeat file(s) passed to entry_point/entry_points.
         allow_files = True,
         providers = [JsInfo],
     ),
-    "chdir": attr.string(),
+    "chdir": attr.string(
+        doc = """Working directory to run Webpack under.
+        
+        This is needed to workaround some buggy resolvers in webpack loaders, which assume that the
+        node_modules tree is located in a parent of the working directory rather than a parent of
+        the script with the require statement.
+
+        Note that any relative paths in your configuration may need to be adjusted so they are
+        relative to the new working directory.
+
+        See also:
+        https://github.com/aspect-build/rules_js/blob/main/docs/js_binary.md#js_binary-chdir
+        """,
+    ),
     "data": js_lib_helpers.JS_LIBRARY_DATA_ATTR,
     "env": attr.string_dict(
         doc = """Environment variables of the action.
