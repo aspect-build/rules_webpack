@@ -163,7 +163,6 @@ def _impl(ctx):
     entry_points = _desugar_entry_points(ctx.label.name, ctx.attr.entry_point, ctx.attr.entry_points).items()
     entry_mapping = {}
     for entry_point in entry_points:
-        # TODO: find an idiomatic way to do this.
         entry_mapping[entry_point[1]] = "./%s" % _relpath(ctx, entry_point[0])
 
     inputs = []
