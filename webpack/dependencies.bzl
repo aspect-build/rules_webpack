@@ -6,12 +6,6 @@ See https://docs.bazel.build/versions/main/skylark/deploying.html#dependencies
 
 load("//webpack/private:maybe.bzl", http_archive = "maybe_http_archive")
 
-# WARNING: any changes in this function may be BREAKING CHANGES for users
-# because we'll fetch a dependency which may be different from one that
-# they were previously fetching later in their WORKSPACE setup, and now
-# ours took precedence. Such breakages are challenging for users, so any
-# changes in this function should be marked as BREAKING in the commit message
-# and released only in semver majors.
 def rules_webpack_dependencies():
     # The minimal version of bazel_skylib we require
     http_archive(
@@ -29,9 +23,9 @@ def rules_webpack_dependencies():
 
     http_archive(
         name = "aspect_bazel_lib",
-        sha256 = "695d319362b227725e4daa60d863b4d1969b167889902511f1fd3051cea1071f",
-        strip_prefix = "bazel-lib-1.16.3",
-        url = "https://github.com/aspect-build/bazel-lib/archive/refs/tags/v1.16.3.tar.gz",
+        sha256 = "be236556c7b9c7b91cb370e837fdcec62b6e8893408cd4465ae883c9d7c67024",
+        strip_prefix = "bazel-lib-1.18.0",
+        url = "https://github.com/aspect-build/bazel-lib/archive/refs/tags/v1.18.0.tar.gz",
     )
 
     http_archive(
