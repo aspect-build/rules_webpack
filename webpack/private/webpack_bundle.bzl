@@ -167,6 +167,20 @@ def _impl(ctx):
 
     inputs = []
 
+    # Change source-map and mode based on compilation mode
+    # See: https://docs.bazel.build/versions/main/user-manual.html#flag--compilation_mode
+    # See: https://webpack.js.org/configuration/devtool/#devtool
+    compilation_mode = ctx.var["COMPILATION_MODE"]
+    devtool = None
+    mode = "development"
+
+    if compilation_mode == "fastbuild":
+        devtool = "eval"
+    elif compilation_mode == "dbg":
+        devtool = "eval-source-map"
+    elif compilation_mode == "opt":
+        mode = "production"
+
     # Expand webpack config for the entry mapping
     # NOTE: generated config should always come first as it provides sensible defaults under bazel which
     # users might want to override. Also, webpack_worker uses the first webpack config path as the worker key.
@@ -177,6 +191,8 @@ def _impl(ctx):
         output = config,
         substitutions = {
             "{ ENTRIES }": json.encode(entry_mapping),
+            "devtool: 'DEVTOOL',": "devtool: '{}',".format(devtool) if devtool else "",
+            "mode: 'MODE',": "mode: '{}',".format(mode),
         },
     )
 
@@ -191,18 +207,6 @@ def _impl(ctx):
 
         # Merge all webpack configs
         args.add("--merge")
-
-    # Change source-map and mode based on compilation mode
-    # See: https://docs.bazel.build/versions/main/user-manual.html#flag--compilation_mode
-    # See: https://webpack.js.org/configuration/devtool/#devtool
-    compilation_mode = ctx.var["COMPILATION_MODE"]
-
-    if compilation_mode == "fastbuild":
-        args.add_all(["--devtool", "eval", "--mode", "development"])
-    elif compilation_mode == "dbg":
-        args.add_all(["--devtool", "eval-source-map", "--mode", "development"])
-    elif compilation_mode == "opt":
-        args.add_all(["--no-devtool", "--mode", "production"])
 
     if ctx.attr.output_dir:
         output_sources = [ctx.actions.declare_directory(ctx.attr.name)]
