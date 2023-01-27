@@ -21,4 +21,6 @@ module.exports = {
     // and https://webpack.js.org/configuration/output/#outputdevtoolmodulefilenametemplate
     uniqueName: process.env.BAZEL_WORKSPACE,
   },
+  devtool: 'DEVTOOL',
+  mode: 'MODE',
 }
