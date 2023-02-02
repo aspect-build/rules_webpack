@@ -1,4 +1,5 @@
 load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
+load("@aspect_bazel_lib//lib:diff_test.bzl", "diff_test")
 load("//webpack:defs.bzl", "webpack_bundle")
 
 webpack_bundle(
@@ -18,4 +19,26 @@ write_source_files(
     files = {
         "expected.js_": ":bundle.js",
     },
+)
+
+
+webpack_bundle(
+    name = "multi-bundle",
+    srcs = [
+        "module.js",
+    ],
+    entry_points = {
+        "index.js": "multi",
+    },
+    env = {
+        "MY_ENV": "$(execpath :index.js)",
+    },
+    webpack_config = ":webpack.config.js",
+)
+
+# The entry_point + entry_points bundles should match.
+diff_test(
+    name = "entries_match",
+    file1 = "bundle.js",
+    file2 = "multi.js",
 )
