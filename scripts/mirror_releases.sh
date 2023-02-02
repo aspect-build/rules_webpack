@@ -9,4 +9,5 @@ mkdir -p "$out"
 cd $(mktemp -d)
 npx pnpm install webpack@5.72.1 webpack-cli webpack-dev-server @bazel/worker --lockfile-only
 cp pnpm-lock.yaml "$out"
+cp package.json "$out"
 echo "Mirrored webpack version $version to $out. Now add it to webpack/private/versions.bzl"
