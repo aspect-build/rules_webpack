@@ -220,8 +220,12 @@ def _impl(ctx):
     }
     if ctx.attr.chdir:
         env["JS_BINARY__CHDIR"] = ctx.attr.chdir
+    entry_points_srcs = [ctx.attr.entry_point] if ctx.attr.entry_point else ctx.attr.entry_points.keys()
     for (key, value) in ctx.attr.env.items():
-        env[key] = " ".join([expand_variables(ctx, exp, attribute_name = "env") for exp in expand_locations(ctx, value, [ctx.attr.entry_point] + ctx.attr.srcs + ctx.attr.deps + ctx.attr.data).split(" ")])
+        env[key] = " ".join([
+            expand_variables(ctx, exp, attribute_name = "env")
+            for exp in expand_locations(ctx, value, entry_points_srcs + ctx.attr.srcs + ctx.attr.deps + ctx.attr.data).split(" ")
+        ])
 
     # Add user specified arguments after rule supplied arguments
     args.add_all(ctx.attr.args)
