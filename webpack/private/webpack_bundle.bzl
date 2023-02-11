@@ -273,6 +273,8 @@ def _impl(ctx):
     )
 
     npm_package_store_deps = js_lib_helpers.gather_npm_package_store_deps(
+        # Since we're bundling, only propagate `data` npm packages to the direct dependencies of
+        # downstream linked `npm_package` targets instead of the common `data` and `deps` pattern.
         targets = ctx.attr.data,
     )
 
