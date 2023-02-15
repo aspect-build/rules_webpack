@@ -17,14 +17,8 @@
 Users should not load files under "/internal"
 """
 
-load("//webpack/private:webpack_bundle.bzl", _webpack_lib = "lib")
+load("//webpack/private:webpack_bundle.bzl", _webpack_bundle = "webpack_bundle")
 load("//webpack/private:webpack_devserver.bzl", _webpack_devserver = "webpack_devserver")
 
-webpack_bundle = rule(
-    implementation = _webpack_lib.implementation,
-    attrs = _webpack_lib.attrs,
-    outputs = _webpack_lib.outputs,
-    doc = "Runs the webpack-cli under bazel.",
-)
-
+webpack_bundle = _webpack_bundle
 webpack_devserver = _webpack_devserver
