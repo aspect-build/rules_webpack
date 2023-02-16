@@ -1,8 +1,10 @@
 """Webpack bundle producing rule definition."""
 
 load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_files_to_bin_actions")
+load("@aspect_bazel_lib//lib:directory_path.bzl", "directory_path")
 load("@aspect_bazel_lib//lib:expand_make_vars.bzl", "expand_locations", "expand_variables")
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load("@aspect_rules_js//js:defs.bzl", "js_binary")
 load("@aspect_rules_js//js:libs.bzl", "js_lib_helpers")
 load("@aspect_rules_js//js:providers.bzl", "JsInfo", "js_info")
 
@@ -420,4 +422,37 @@ def webpack_bundle(
         supports_workers = supports_workers,
         allow_execroot_entry_point_with_no_copy_data_to_bin = allow_execroot_entry_point_with_no_copy_data_to_bin,
         **kwargs
+    )
+
+def webpack_binary(name, node_modules):
+    """Create a webpack binary target from linked node_modules in the user's workspace.
+
+    Pass this into the `webpack` attribute of webpack_bundle to use your own linked
+    version of webpack rather than rules_webpack's version, which can help to avoid
+    certain errors caused by having two copies of webpack. The following three packages
+    must be linked into the node_modules virtual store target:
+
+        webpack, webpack-cli, webpack-dev-server
+
+    Args:
+        name: Unique name for the binary target
+        node_modules: Label pointing to the linked node_modules target where
+            webpack is linked, e.g. `//:node_modules`.
+    """
+
+    directory_path(
+        name = "{}_entrypoint".format(name),
+        directory = "{}/webpack/dir".format(node_modules),
+        path = "bin/webpack.js",
+    )
+
+    js_binary(
+        name = name,
+        data = [
+            "{}/webpack".format(node_modules),
+            "{}/webpack-cli".format(node_modules),
+            "{}/webpack-dev-server".format(node_modules),
+        ],
+        entry_point = ":{}_entrypoint".format(name),
+        visibility = ["//visibility:public"],
     )

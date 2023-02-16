@@ -63,6 +63,7 @@ jobs:
         folder:
           - '.'
           - 'e2e/loaders'
+          - 'e2e/webpack_binary'
           - 'e2e/workspace'
           - 'e2e/worker'
         exclude:
