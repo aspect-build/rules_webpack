@@ -17,8 +17,9 @@
 Users should not load files under "/internal"
 """
 
-load("//webpack/private:webpack_bundle.bzl", _webpack_bundle = "webpack_bundle")
+load("//webpack/private:webpack_bundle.bzl", _webpack_binary = "webpack_binary", _webpack_bundle = "webpack_bundle")
 load("//webpack/private:webpack_devserver.bzl", _webpack_devserver = "webpack_devserver")
 
+webpack_binary = _webpack_binary
 webpack_bundle = _webpack_bundle
 webpack_devserver = _webpack_devserver

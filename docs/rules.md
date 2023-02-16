@@ -5,6 +5,33 @@ Public API surface is re-exported here.
 Users should not load files under "/internal"
 
 
+<a id="webpack_binary"></a>
+
+## webpack_binary
+
+<pre>
+webpack_binary(<a href="#webpack_binary-name">name</a>, <a href="#webpack_binary-node_modules">node_modules</a>)
+</pre>
+
+Create a webpack binary target from linked node_modules in the user's workspace.
+
+Pass this into the `webpack` attribute of webpack_bundle to use your own linked
+version of webpack rather than rules_webpack's version, which can help to avoid
+certain errors caused by having two copies of webpack. The following three packages
+must be linked into the node_modules virtual store target:
+
+    webpack, webpack-cli, webpack-dev-server
+
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="webpack_binary-name"></a>name |  Unique name for the binary target   |  none |
+| <a id="webpack_binary-node_modules"></a>node_modules |  Label pointing to the linked node_modules target where webpack is linked, e.g. <code>//:node_modules</code>.   |  none |
+
+
 <a id="webpack_bundle"></a>
 
 ## webpack_bundle
