@@ -73,7 +73,8 @@ Runs the webpack-cli under bazel
 ## webpack_devserver
 
 <pre>
-webpack_devserver(<a href="#webpack_devserver-name">name</a>, <a href="#webpack_devserver-webpack_config">webpack_config</a>, <a href="#webpack_devserver-args">args</a>, <a href="#webpack_devserver-data">data</a>, <a href="#webpack_devserver-mode">mode</a>, <a href="#webpack_devserver-webpack">webpack</a>, <a href="#webpack_devserver-kwargs">kwargs</a>)
+webpack_devserver(<a href="#webpack_devserver-name">name</a>, <a href="#webpack_devserver-chdir">chdir</a>, <a href="#webpack_devserver-env">env</a>, <a href="#webpack_devserver-entry_point">entry_point</a>, <a href="#webpack_devserver-entry_points">entry_points</a>, <a href="#webpack_devserver-webpack_config">webpack_config</a>, <a href="#webpack_devserver-args">args</a>, <a href="#webpack_devserver-data">data</a>, <a href="#webpack_devserver-mode">mode</a>,
+                  <a href="#webpack_devserver-webpack">webpack</a>, <a href="#webpack_devserver-kwargs">kwargs</a>)
 </pre>
 
 Runs the webpack devserver.
@@ -89,11 +90,15 @@ under the hood.
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
 | <a id="webpack_devserver-name"></a>name |  A unique name for this target.   |  none |
-| <a id="webpack_devserver-webpack_config"></a>webpack_config |  Webpack configuration file. See https://webpack.js.org/configuration/.   |  none |
+| <a id="webpack_devserver-chdir"></a>chdir |  Working directory to run Webpack under.<br><br>This is needed to workaround some buggy resolvers in webpack loaders, which assume that the node_modules tree is located in a parent of the working directory rather than a parent of the script with the require statement.<br><br>Note that any relative paths in your configuration may need to be adjusted so they are relative to the new working directory.<br><br>See also: https://github.com/aspect-build/rules_js/blob/main/docs/js_binary.md#js_binary-chdir   |  <code>None</code> |
+| <a id="webpack_devserver-env"></a>env |  Environment variables of the action.<br><br>Subject to <code>$(location)</code> and make variable expansion.   |  <code>{}</code> |
+| <a id="webpack_devserver-entry_point"></a>entry_point |  The point where to start the application bundling process.<br><br>See https://webpack.js.org/concepts/entry-points/<br><br>Exactly one of <code>entry_point</code> to <code>entry_points</code> must be specified.   |  <code>None</code> |
+| <a id="webpack_devserver-entry_points"></a>entry_points |  The map of entry points to bundle names.<br><br>See https://webpack.js.org/concepts/entry-points/<br><br>Exactly one of <code>entry_point</code> to <code>entry_points</code> must be specified.   |  <code>[]</code> |
+| <a id="webpack_devserver-webpack_config"></a>webpack_config |  Webpack configuration file. See https://webpack.js.org/configuration/.   |  <code>None</code> |
 | <a id="webpack_devserver-args"></a>args |  Additional arguments to pass to webpack.<br><br>The <code>serve</code> command, the webpack config file (<code>--config</code>) and the mode (<code>--mode</code>) are automatically set.   |  <code>[]</code> |
-| <a id="webpack_devserver-data"></a>data |  Runtime dependencies of the program.<br><br>The webpack config is automatically passed to data.   |  <code>[]</code> |
+| <a id="webpack_devserver-data"></a>data |  Bundle and runtime dependencies of the program.<br><br>Should include the <code>webpack_bundle</code> rule <code>srcs</code> and <code>deps</code>.<br><br>The webpack config and entry_point[s] are automatically passed to data and should not be repeated.   |  <code>[]</code> |
 | <a id="webpack_devserver-mode"></a>mode |  The mode to pass to <code>--mode</code>.   |  <code>"development"</code> |
-| <a id="webpack_devserver-webpack"></a>webpack |  The webpack js_binary to use.   |  <code>"@webpack//:webpack"</code> |
+| <a id="webpack_devserver-webpack"></a>webpack |  The webpack js_binary to use.   |  <code>Label("@webpack//:webpack")</code> |
 | <a id="webpack_devserver-kwargs"></a>kwargs |  Additional arguments. See [js_run_devserver](https://github.com/aspect-build/rules_js/blob/main/docs/js_run_devserver.md).   |  none |
 
 

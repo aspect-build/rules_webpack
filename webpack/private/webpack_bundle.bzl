@@ -52,13 +52,22 @@ _attrs = {
         cfg = "target",
         default = Label("@webpack//:worker"),
     ),
-    "webpack_config": attr.label(
-        allow_single_file = True,
+    "webpack_configs": attr.label_list(
+        allow_files = True,
+        doc = "Internal use only",
     ),
     "use_execroot_entry_point": attr.bool(
         default = True,
     ),
     "allow_execroot_entry_point_with_no_copy_data_to_bin": attr.bool(),
+}
+
+_config_attrs = {
+    "chdir": attr.string(),
+    "entry_points": attr.label_keyed_string_dict(
+        allow_files = True,
+    ),
+    "config_out": attr.output(),
     "_webpack_config_file": attr.label(
         doc = "Internal use only",
         allow_single_file = [".js"],
@@ -107,16 +116,15 @@ def _relpath(ctx, file):
         fail("Expected {} to be of type File, not {}".format(file, type(file)))
     return paths.relativize(file.short_path, ctx.attr.chdir)
 
-def _impl(ctx):
-    output_sources = [getattr(ctx.outputs, o) for o in dir(ctx.outputs)]
+
+def _create_base_config_impl(ctx):
+    inputs = []
 
     # Desugar entrypoints
     entry_points = _desugar_entry_points(ctx.attr.entry_points).items()
     entry_mapping = {}
     for entry_point in entry_points:
         entry_mapping[entry_point[1]] = "./%s" % _relpath(ctx, entry_point[0])
-
-    inputs = []
 
     # Change source-map and mode based on compilation mode
     # See: https://docs.bazel.build/versions/main/user-manual.html#flag--compilation_mode
@@ -133,13 +141,10 @@ def _impl(ctx):
         mode = "production"
 
     # Expand webpack config for the entry mapping
-    # NOTE: generated config should always come first as it provides sensible defaults under bazel which
-    # users might want to override. Also, webpack_worker uses the first webpack config path as the worker key.
-    config = ctx.actions.declare_file("%s.webpack.config.js" % ctx.label.name)
     inputs.append(config)
     ctx.actions.expand_template(
         template = ctx.file._webpack_config_file,
-        output = config,
+        output = ctx.outputs.config_out,
         substitutions = {
             "{ ENTRIES }": json.encode(entry_mapping),
             "devtool: 'DEVTOOL',": "devtool: '{}',".format(devtool) if devtool else "",
@@ -147,16 +152,19 @@ def _impl(ctx):
         },
     )
 
+def _impl(ctx):
+    output_sources = [getattr(ctx.outputs, o) for o in dir(ctx.outputs)]
+
+    inputs = []
+
     # See CLI documentation at https://webpack.js.org/api/cli/
     args = ctx.actions.args()
-    args.add_all(["-c", _relpath(ctx, config)])
 
-    # Add user defined config as an input and argument
-    if ctx.attr.webpack_config:
-        args.add_all(["-c", _relpath(ctx, ctx.file.webpack_config)])
-        inputs.append(ctx.file.webpack_config)
+    for config in ctx.files.webpack_configs:
+        args.add_all(["--config", _relpath(ctx, config)])
+        inputs.append(config)
 
-        # Merge all webpack configs
+    if len(ctx.files.webpack_configs) > 1:
         args.add("--merge")
 
     if ctx.attr.output_dir:
@@ -294,6 +302,48 @@ _webpack_bundle = rule(
     doc = "",
 )
 
+
+_create_base_config = rule(
+    implementation = _create_base_config_impl,
+    attrs = _config_attrs,
+    doc = "",
+)
+
+def webpack_create_configs(name, entry_point, entry_points, webpack_config, chdir):
+    """
+    Internal use only. Not public API.
+
+    Convert the given entry point[s] rule API into a set of webpack config files.
+
+    Args:
+        name: the main target name this config is for
+        entry_point: a single entry
+        entry_points: multiple entries
+        webpack_config: a custom webpack config file
+        chdir: the dir webpack is run in
+
+    Returns:
+        A list of config files to pass to webpack
+    """
+
+    if entry_point and entry_points:
+        fail("Cannot specify both entry_point and entry_points")
+    if not entry_point and not entry_points:
+        fail("One of entry_point or entry_points must be specified")
+
+    default_config = "%s.webpack.config.js" % name
+    _create_base_config(
+        name = "_%s_config" % name,
+        config_out = default_config,
+        entry_points = {entry_point: name} if entry_point else entry_points,
+        chdir = chdir,
+        tags = ["manual"],
+    )
+
+    # NOTE: generated base config should always come first as it provides sensible defaults under bazel which
+    # users might want to override. Also, webpack_worker uses the first webpack config path as the worker key.
+    return [default_config] + ([webpack_config] if webpack_config else [])
+
 def webpack_bundle(
         name,
         srcs = [],
@@ -398,14 +448,18 @@ def webpack_bundle(
 
         **kwargs: Additional arguments
     """
-    if entry_point and entry_points:
-        fail("Cannot specify both entry_point and entry_points")
-    if not entry_point and not entry_points:
-        fail("One of entry_point or entry_points must be specified")
+
+    webpack_configs = webpack_create_configs(
+        name = name,
+        entry_point = entry_point,
+        entry_points = entry_points,
+        webpack_config = webpack_config,
+        chdir = chdir,
+    )
 
     _webpack_bundle(
         name = name,
-        webpack_config = webpack_config,
+        webpack_configs = webpack_configs,
         srcs = srcs,
         args = args,
         deps = deps,
