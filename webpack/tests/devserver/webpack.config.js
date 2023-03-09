@@ -6,7 +6,4 @@ module.exports = {
       template: __dirname + '/index.html',
     }),
   ],
-  entry: {
-    main: './app.js',
-  },
 }

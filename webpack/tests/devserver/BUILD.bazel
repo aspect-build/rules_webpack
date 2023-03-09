@@ -3,8 +3,10 @@ load("//webpack:defs.bzl", "webpack_devserver")
 webpack_devserver(
     name = "devserver",
     chdir = package_name(),
+    entry_points = {
+        "app.js": "multi",
+    },
     data = [
-        "app.js",
         "helper.js",
         "index.html",
         "//webpack/tests:node_modules/html-webpack-plugin",
