@@ -1,7 +1,6 @@
 """Webpack devserver rule definition."""
 
 load("@aspect_rules_js//js:defs.bzl", "js_run_devserver")
-
 load(":webpack_bundle.bzl", _webpack_create_configs = "webpack_create_configs")
 
 def webpack_devserver(
@@ -9,7 +8,7 @@ def webpack_devserver(
         chdir = None,
         env = {},
         entry_point = None,
-        entry_points = [],
+        entry_points = {},
         webpack_config = None,
         args = [],
         data = [],
@@ -29,13 +28,13 @@ def webpack_devserver(
 
             See https://webpack.js.org/concepts/entry-points/
 
-            Exactly one of `entry_point` to `entry_points` must be specified.
+            Only one of `entry_point` to `entry_points` must be specified.
 
         entry_points: The map of entry points to bundle names.
 
             See https://webpack.js.org/concepts/entry-points/
 
-            Exactly one of `entry_point` to `entry_points` must be specified.
+            Only one of `entry_point` to `entry_points` must be specified.
 
         webpack_config: Webpack configuration file. See https://webpack.js.org/configuration/.
 
@@ -81,7 +80,14 @@ def webpack_devserver(
     if chdir:
         unwind_chdir_prefix = "/".join([".."] * len(chdir.split("/"))) + "/"
 
-    webpack_configs = _webpack_create_configs(name, entry_point, entry_points, webpack_config, chdir)
+    webpack_configs = _webpack_create_configs(
+        name = name,
+        entry_point = entry_point,
+        entry_points = entry_points,
+        webpack_config = webpack_config,
+        chdir = chdir,
+        entry_points_mandatory = False,  # devserver rule doesn't have outputs so entry points are not needed to predict output files
+    )
 
     config_args = []
     for config in webpack_configs:

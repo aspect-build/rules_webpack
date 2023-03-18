@@ -68,6 +68,7 @@ _config_attrs = {
         allow_files = True,
     ),
     "config_out": attr.output(),
+    "output_dir": attr.bool(),
     "_webpack_config_file": attr.label(
         doc = "Internal use only",
         allow_single_file = [".js"],
@@ -115,7 +116,6 @@ def _relpath(ctx, file):
     if type(file) != "File":
         fail("Expected {} to be of type File, not {}".format(file, type(file)))
     return paths.relativize(file.short_path, ctx.attr.chdir)
-
 
 def _create_base_config_impl(ctx):
     inputs = []
@@ -302,14 +302,13 @@ _webpack_bundle = rule(
     doc = "",
 )
 
-
 _create_base_config = rule(
     implementation = _create_base_config_impl,
     attrs = _config_attrs,
     doc = "",
 )
 
-def webpack_create_configs(name, entry_point, entry_points, webpack_config, chdir):
+def webpack_create_configs(name, entry_point, entry_points, webpack_config, chdir, entry_points_mandatory):
     """
     Internal use only. Not public API.
 
@@ -321,6 +320,7 @@ def webpack_create_configs(name, entry_point, entry_points, webpack_config, chdi
         entry_points: multiple entries
         webpack_config: a custom webpack config file
         chdir: the dir webpack is run in
+        entry_points_mandatory: whether or not entry points must be specified
 
     Returns:
         A list of config files to pass to webpack
@@ -328,7 +328,7 @@ def webpack_create_configs(name, entry_point, entry_points, webpack_config, chdi
 
     if entry_point and entry_points:
         fail("Cannot specify both entry_point and entry_points")
-    if not entry_point and not entry_points:
+    if entry_points_mandatory and not entry_point and not entry_points:
         fail("One of entry_point or entry_points must be specified")
 
     default_config = "%s.webpack.config.js" % name
@@ -354,7 +354,7 @@ def webpack_bundle(
         env = {},
         output_dir = False,
         entry_point = None,
-        entry_points = [],
+        entry_points = {},
         webpack_config = None,
         webpack = Label("@webpack//:webpack"),
         webpack_worker = Label("@webpack//:worker"),
@@ -408,13 +408,13 @@ def webpack_bundle(
 
             See https://webpack.js.org/concepts/entry-points/
 
-            Exactly one of `entry_point` to `entry_points` must be specified.
+            Exactly one of `entry_point` to `entry_points` must be specified if `output_dir` is `False`.
 
         entry_points: The map of entry points to bundle names.
 
             See https://webpack.js.org/concepts/entry-points/
 
-            Exactly one of `entry_point` to `entry_points` must be specified.
+            Exactly one of `entry_point` to `entry_points` must be specified if `output_dir` is `False`.
 
         webpack_config: Webpack configuration file.
 
@@ -455,6 +455,7 @@ def webpack_bundle(
         entry_points = entry_points,
         webpack_config = webpack_config,
         chdir = chdir,
+        entry_points_mandatory = not output_dir,
     )
 
     _webpack_bundle(
