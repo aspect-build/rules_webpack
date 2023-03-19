@@ -10,9 +10,6 @@ webpack_bundle(
         "src/component.js",
         "src/styles.css",
     ],
-    entry_points = {
-        "src/component.js": "styles",
-    },
     output_dir = True,
     webpack_config = ":webpack.css.cjs",
     deps = [
@@ -27,9 +24,6 @@ webpack_bundle(
         "src/component.js",
         "src/styles.css",
     ],
-    entry_points = {
-        "src/component.js": "styles",
-    },
     output_dir = True,
     webpack_config = ":webpack.css.cjs",
     deps = [
@@ -44,9 +38,6 @@ webpack_bundle(
         "src/index.ts",
         "tsconfig.json",
     ],
-    entry_points = {
-        "src/index.ts": "index",
-    },
     output_dir = True,
     webpack_config = ":webpack.config.cjs",
     deps = [
@@ -60,9 +51,6 @@ webpack_bundle(
         "src/index.ts",
         "tsconfig.json",
     ],
-    entry_points = {
-        "src/index.ts": "index",
-    },
     output_dir = True,
     webpack_config = ":webpack.config.cjs",
     deps = [
