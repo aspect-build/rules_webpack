@@ -11,6 +11,7 @@ webpack_bundle(
     env = {
         "MY_ENV": "$(execpath :index.js)",
     },
+    node_modules = "//:node_modules",
     webpack_config = ":webpack.config.js",
 )
 
@@ -20,7 +21,6 @@ write_source_files(
         "expected.js_": ":bundle.js",
     },
 )
-
 
 webpack_bundle(
     name = "multi-bundle",
@@ -33,6 +33,7 @@ webpack_bundle(
     env = {
         "MY_ENV": "$(execpath :index.js)",
     },
+    node_modules = "//:node_modules",
     webpack_config = ":webpack.config.js",
 )
 

@@ -19,15 +19,6 @@ nodejs_register_toolchains(
     node_version = DEFAULT_NODE_VERSION,
 )
 
-# Fetch and register the webpack tool
-load("@aspect_rules_webpack//webpack:repositories.bzl", "webpack_repositories")
-
-webpack_repositories(name = "webpack")
-
-load("@webpack//:npm_repositories.bzl", webpack_npm_repositories = "npm_repositories")
-
-webpack_npm_repositories()
-
 # brought as a dep by webpack ruleset
 load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock")
 
@@ -39,4 +30,5 @@ npm_translate_lock(
 )
 
 load("@npm//:repositories.bzl", "npm_repositories")
+
 npm_repositories()

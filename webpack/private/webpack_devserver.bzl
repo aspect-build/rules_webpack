@@ -1,10 +1,11 @@
 """Webpack devserver rule definition."""
 
 load("@aspect_rules_js//js:defs.bzl", "js_run_devserver")
-load(":webpack_bundle.bzl", _webpack_create_configs = "webpack_create_configs")
+load(":webpack_bundle.bzl", _webpack_binary = "webpack_binary", _webpack_create_configs = "webpack_create_configs")
 
 def webpack_devserver(
         name,
+        node_modules,
         chdir = None,
         env = {},
         entry_point = None,
@@ -13,7 +14,6 @@ def webpack_devserver(
         args = [],
         data = [],
         mode = "development",
-        webpack = Label("@webpack//:webpack"),
         **kwargs):
     """Runs the webpack devserver.
 
@@ -23,6 +23,13 @@ def webpack_devserver(
 
     Args:
         name: A unique name for this target.
+
+        node_modules: Label pointing to the linked node_modules target where
+            webpack is linked, e.g. `//:node_modules`.
+
+            The following three packages must be linked into the node_modules supplied:
+
+                webpack, webpack-cli, webpack-dev-server
 
         entry_point: The point where to start the application bundling process.
 
@@ -67,8 +74,6 @@ def webpack_devserver(
 
         mode: The mode to pass to `--mode`.
 
-        webpack: The webpack js_binary to use.
-
         **kwargs: Additional arguments. See [js_run_devserver](https://github.com/aspect-build/rules_js/blob/main/docs/js_run_devserver.md).
     """
     if kwargs.pop("command", None):
@@ -97,9 +102,16 @@ def webpack_devserver(
     if len(webpack_configs) > 1:
         config_args.append("--merge")
 
+    webpack_binary_target = "_{}_webpack_binary".format(name)
+
+    _webpack_binary(
+        name = webpack_binary_target,
+        node_modules = node_modules,
+    )
+
     js_run_devserver(
         name = name,
-        tool = webpack,
+        tool = webpack_binary_target,
         args = ["serve"] + config_args + ["--mode", mode] + args,
         data = data + webpack_configs + ([entry_point] if entry_point else []) + entry_points.keys(),
         chdir = chdir,

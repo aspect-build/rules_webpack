@@ -1,12 +1,15 @@
 load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
 load("@aspect_rules_webpack//webpack:defs.bzl", "webpack_bundle")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+
+npm_link_all_packages(name = "node_modules")
 
 webpack_bundle(
     name = "bundle",
     entry_point = "module.js",
+    node_modules = "//:node_modules",
     supports_workers = True,
 )
-
 
 write_source_files(
     name = "write_bundle",

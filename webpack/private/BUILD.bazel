@@ -5,6 +5,7 @@ bzl_library(
     srcs = ["webpack_bundle.bzl"],
     visibility = ["//webpack:__subpackages__"],
     deps = [
+        "@aspect_bazel_lib//lib:copy_file",
         "@aspect_bazel_lib//lib:copy_to_bin",
         "@aspect_rules_js//js:libs",
         "@aspect_rules_js//js:providers",
@@ -22,11 +23,3 @@ exports_files([
     "webpack.config.js",
     "webpack_worker.js",
 ])
-
-# gazelle:exclude v*.*.*/*
-# gazelle:ignore
-bzl_library(
-    name = "versions",
-    srcs = ["versions.bzl"],
-    visibility = ["//webpack:__subpackages__"],
-)

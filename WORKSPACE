@@ -32,20 +32,14 @@ load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock")
 
 npm_translate_lock(
     name = "npm",
-    pnpm_lock = "//webpack/tests:pnpm-lock.yaml",
+    npmrc = "//:.npmrc",
+    pnpm_lock = "//:pnpm-lock.yaml",
+    verify_node_modules_ignored = "//:.bazelignore",
 )
 
 load("@npm//:repositories.bzl", "npm_repositories")
 
 npm_repositories()
-
-load("//webpack:repositories.bzl", "webpack_repositories")
-
-webpack_repositories(name = "webpack")
-
-load("@webpack//:npm_repositories.bzl", webpack_npm_repositories = "npm_repositories")
-
-webpack_npm_repositories()
 
 # For running our own unit tests
 load("@bazel_skylib//lib:unittest.bzl", "register_unittest_toolchains")
