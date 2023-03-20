@@ -10,6 +10,7 @@ webpack_bundle(
         "src/component.js",
         "src/styles.css",
     ],
+    node_modules = "//:node_modules",
     output_dir = True,
     webpack_config = ":webpack.css.cjs",
     deps = [
@@ -24,6 +25,7 @@ webpack_bundle(
         "src/component.js",
         "src/styles.css",
     ],
+    node_modules = "//:node_modules",
     output_dir = True,
     webpack_config = ":webpack.css.cjs",
     deps = [
@@ -38,6 +40,7 @@ webpack_bundle(
         "src/index.ts",
         "tsconfig.json",
     ],
+    node_modules = "//:node_modules",
     output_dir = True,
     webpack_config = ":webpack.config.cjs",
     deps = [
@@ -51,6 +54,7 @@ webpack_bundle(
         "src/index.ts",
         "tsconfig.json",
     ],
+    node_modules = "//:node_modules",
     output_dir = True,
     webpack_config = ":webpack.config.cjs",
     deps = [

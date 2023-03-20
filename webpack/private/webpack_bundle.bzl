@@ -1,12 +1,14 @@
 """Webpack bundle producing rule definition."""
 
+load("@aspect_bazel_lib//lib:copy_file.bzl", "copy_file")
 load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_files_to_bin_actions")
-load("@aspect_bazel_lib//lib:directory_path.bzl", "directory_path")
 load("@aspect_bazel_lib//lib:expand_make_vars.bzl", "expand_locations", "expand_variables")
-load("@bazel_skylib//lib:paths.bzl", "paths")
 load("@aspect_rules_js//js:defs.bzl", "js_binary")
 load("@aspect_rules_js//js:libs.bzl", "js_lib_helpers")
 load("@aspect_rules_js//js:providers.bzl", "JsInfo", "js_info")
+load("@bazel_skylib//lib:paths.bzl", "paths")
+load(":webpack_binary.bzl", "webpack_binary")
+load(":webpack_create_configs.bzl", "webpack_create_configs")
 
 _attrs = {
     "args": attr.string_list(
@@ -33,24 +35,20 @@ _attrs = {
     "webpack_exec_cfg": attr.label(
         executable = True,
         cfg = "exec",
-        default = Label("@webpack"),
     ),
     "webpack_target_cfg": attr.label(
         executable = True,
         cfg = "target",
-        default = Label("@webpack"),
     ),
     "webpack_worker_exec_cfg": attr.label(
         doc = "",
         executable = True,
         cfg = "exec",
-        default = Label("@webpack//:worker"),
     ),
     "webpack_worker_target_cfg": attr.label(
         doc = "",
         executable = True,
         cfg = "target",
-        default = Label("@webpack//:worker"),
     ),
     "webpack_configs": attr.label_list(
         allow_files = True,
@@ -59,42 +57,11 @@ _attrs = {
     "use_execroot_entry_point": attr.bool(
         default = True,
     ),
-    "allow_execroot_entry_point_with_no_copy_data_to_bin": attr.bool(),
-}
-
-_config_attrs = {
-    "chdir": attr.string(),
-    "entry_points": attr.label_keyed_string_dict(
-        allow_files = True,
-    ),
-    "config_out": attr.output(),
-    "output_dir": attr.bool(),
-    "_webpack_config_file": attr.label(
-        doc = "Internal use only",
-        allow_single_file = [".js"],
-        default = Label("//webpack/private:webpack.config.js"),
+    "_worker_js": attr.label(
+        allow_single_file = True,
+        default = "@aspect_rules_js//js/private/worker:worker.js",
     ),
 }
-
-def _desugar_entry_points(entry_points):
-    """Converts from dict[target: string] to dict[file: string] to a validated dict[file: string] for which every key corresponds to exactly one file.
-
-    Args:
-        entry_points: ctx.attr.entry_points
-    Returns:
-        Dictionary mapping from file to target name.
-
-    See: https://github.com/bazelbuild/bazel/issues/5355
-    """
-    result = {}
-    for ep in entry_points.items():
-        entry_point = ep[0]
-        name = ep[1]
-        f = entry_point.files.to_list()
-        if len(f) != 1:
-            fail("webpack_bundle entry points must provide one file, but %s has %s" % (entry_point.label, len(f)))
-        result[f[0]] = name
-    return result
 
 def _outs(entry_points, output_dir):
     """Supply some labelled outputs in the common case of a single entry point"""
@@ -116,41 +83,6 @@ def _relpath(ctx, file):
     if type(file) != "File":
         fail("Expected {} to be of type File, not {}".format(file, type(file)))
     return paths.relativize(file.short_path, ctx.attr.chdir)
-
-def _create_base_config_impl(ctx):
-    inputs = []
-
-    # Desugar entrypoints
-    entry_points = _desugar_entry_points(ctx.attr.entry_points).items()
-    entry_mapping = {}
-    for entry_point in entry_points:
-        entry_mapping[entry_point[1]] = "./%s" % _relpath(ctx, entry_point[0])
-
-    # Change source-map and mode based on compilation mode
-    # See: https://docs.bazel.build/versions/main/user-manual.html#flag--compilation_mode
-    # See: https://webpack.js.org/configuration/devtool/#devtool
-    compilation_mode = ctx.var["COMPILATION_MODE"]
-    devtool = None
-    mode = "development"
-
-    if compilation_mode == "fastbuild":
-        devtool = "eval"
-    elif compilation_mode == "dbg":
-        devtool = "eval-source-map"
-    elif compilation_mode == "opt":
-        mode = "production"
-
-    # Expand webpack config for the entry mapping
-    inputs.append(config)
-    ctx.actions.expand_template(
-        template = ctx.file._webpack_config_file,
-        output = ctx.outputs.config_out,
-        substitutions = {
-            "{ ENTRIES }": json.encode(entry_mapping),
-            "devtool: 'DEVTOOL',": "devtool: '{}',".format(devtool) if devtool else "",
-            "mode: 'MODE',": "mode: '{}',".format(mode),
-        },
-    )
 
 def _impl(ctx):
     output_sources = [getattr(ctx.outputs, o) for o in dir(ctx.outputs)]
@@ -179,8 +111,6 @@ def _impl(ctx):
     }
     if ctx.attr.use_execroot_entry_point:
         env["JS_BINARY__USE_EXECROOT_ENTRY_POINT"] = "1"
-    if ctx.attr.allow_execroot_entry_point_with_no_copy_data_to_bin:
-        env["JS_BINARY__ALLOW_EXECROOT_ENTRY_POINT_WITH_NO_COPY_DATA_TO_BIN"] = "1"
     if ctx.attr.chdir:
         env["JS_BINARY__CHDIR"] = ctx.attr.chdir
     entry_points_srcs = ctx.attr.entry_points.keys()
@@ -196,9 +126,19 @@ def _impl(ctx):
     executable = ctx.executable.webpack_exec_cfg
     execution_requirements = {}
 
+    no_copy_bin_inputs = []
     if ctx.attr.supports_workers:
         executable = ctx.executable.webpack_worker_exec_cfg
         execution_requirements["supports-workers"] = str(int(ctx.attr.supports_workers))
+
+        no_copy_bin_inputs.append(ctx.file._worker_js)
+
+        path_to_execroot = ("/".join([".."] * len(ctx.label.package.split("/"))) if ctx.label.package else ".") + "/"
+        if ctx.attr.use_execroot_entry_point:
+            env["JS_BINARY__ALLOW_EXECROOT_ENTRY_POINT_WITH_NO_COPY_DATA_TO_BIN"] = "1"
+            env["RULES_JS_WORKER"] = path_to_execroot + "../../../" + ctx.file._worker_js.path
+        else:
+            env["RULES_JS_WORKER"] = path_to_execroot + ctx.file._worker_js.short_path
 
         # Set to use a multiline param-file for worker mode
         args.use_param_file("@%s", use_always = True)
@@ -223,7 +163,7 @@ def _impl(ctx):
     inputs.extend(ctx.files.deps)
     inputs.extend(ctx.files.entry_points)
     inputs = depset(
-        copy_files_to_bin_actions(ctx, inputs),
+        copy_files_to_bin_actions(ctx, inputs) + no_copy_bin_inputs,
         transitive = [webpack_runfiles] + [js_lib_helpers.gather_files_from_js_providers(
             targets = ctx.attr.srcs + ctx.attr.deps,
             include_transitive_sources = True,
@@ -302,50 +242,9 @@ _webpack_bundle = rule(
     doc = "",
 )
 
-_create_base_config = rule(
-    implementation = _create_base_config_impl,
-    attrs = _config_attrs,
-    doc = "",
-)
-
-def webpack_create_configs(name, entry_point, entry_points, webpack_config, chdir, entry_points_mandatory):
-    """
-    Internal use only. Not public API.
-
-    Convert the given entry point[s] rule API into a set of webpack config files.
-
-    Args:
-        name: the main target name this config is for
-        entry_point: a single entry
-        entry_points: multiple entries
-        webpack_config: a custom webpack config file
-        chdir: the dir webpack is run in
-        entry_points_mandatory: whether or not entry points must be specified
-
-    Returns:
-        A list of config files to pass to webpack
-    """
-
-    if entry_point and entry_points:
-        fail("Cannot specify both entry_point and entry_points")
-    if entry_points_mandatory and not entry_point and not entry_points:
-        fail("One of entry_point or entry_points must be specified")
-
-    default_config = "%s.webpack.config.js" % name
-    _create_base_config(
-        name = "_%s_config" % name,
-        config_out = default_config,
-        entry_points = {entry_point: name} if entry_point else entry_points,
-        chdir = chdir,
-        tags = ["manual"],
-    )
-
-    # NOTE: generated base config should always come first as it provides sensible defaults under bazel which
-    # users might want to override. Also, webpack_worker uses the first webpack config path as the worker key.
-    return [default_config] + ([webpack_config] if webpack_config else [])
-
 def webpack_bundle(
         name,
+        node_modules,
         srcs = [],
         args = [],
         deps = [],
@@ -356,16 +255,20 @@ def webpack_bundle(
         entry_point = None,
         entry_points = {},
         webpack_config = None,
-        webpack = Label("@webpack//:webpack"),
-        webpack_worker = Label("@webpack//:worker"),
         use_execroot_entry_point = True,
         supports_workers = False,
-        allow_execroot_entry_point_with_no_copy_data_to_bin = False,
         **kwargs):
     """Runs the webpack-cli under bazel
 
     Args:
         name: A unique name for this target.
+
+        node_modules: Label pointing to the linked node_modules target where
+            webpack is linked, e.g. `//:node_modules`.
+
+            The following packages must be linked into the node_modules supplied:
+
+                webpack, webpack-cli
 
         srcs: Non-entry point JavaScript source files from the workspace.
 
@@ -420,34 +323,30 @@ def webpack_bundle(
 
             See https://webpack.js.org/configuration/
 
-        webpack: Target that executes the webpack-cli binary.
-
-        webpack_worker: Target that executes the webpack-cli binary as a worker.
-
         use_execroot_entry_point: Use the `entry_point` script of the `webpack` `js_binary` that is in the execroot output tree instead of the copy that is in runfiles.
 
-            `webpack` (and `webpack_worker` if `supports_workers` is one) runfiles are hoisted to the target
-            platform when this is configured and included as target platform execroot inputs to the action.
+            When set, runfiles are hoisted to the target platform when this is configured and included as target
+            platform execroot inputs to the action.
 
             Using the entry point script that is in the execroot output tree means that there will be no conflicting
             runfiles `node_modules` in the node_modules resolution path which can confuse npm packages such as next and
             react that don't like being resolved in multiple node_modules trees. This more closely emulates the
             environment that tools such as Next.js see when they are run outside of Bazel.
 
-            When True, the `webpack` `js_binary` must have `copy_data_to_bin` set to True (the default) so that all data files
-            needed by the binary are available in the execroot output tree. This requirement can be turned off with by
-            setting `allow_execroot_entry_point_with_no_copy_data_to_bin` to True.
-
         supports_workers: Experimental! Use only with caution.
 
             Allows you to enable the Bazel Worker strategy for this library.
 
-        allow_execroot_entry_point_with_no_copy_data_to_bin: Turn off validation that the `webpack` `js_binary` has `copy_data_to_bin` set to True when `use_execroot_entry_point` is set to True.
-
-            See `use_execroot_entry_point` doc for more info.
-
         **kwargs: Additional arguments
     """
+
+    webpack_binary_target = "_{}_webpack_binary".format(name)
+
+    webpack_binary(
+        name = webpack_binary_target,
+        node_modules = node_modules,
+        additional_packages = ["webpack-cli"],
+    )
 
     webpack_configs = webpack_create_configs(
         name = name,
@@ -457,6 +356,27 @@ def webpack_bundle(
         chdir = chdir,
         entry_points_mandatory = not output_dir,
     )
+
+    webpack_worker_binary_target = None
+    if supports_workers:
+        webpack_worker_binary_target = "_{}_webpack_worker_binary".format(name)
+        copy_file(
+            name = "_{}_copy_webpack_worker".format(name),
+            src = "@aspect_rules_webpack//webpack/private:webpack_worker.js",
+            out = "_{}_webpack_worker.js".format(name),
+        )
+        js_binary(
+            name = webpack_worker_binary_target,
+            data = [
+                "{}/webpack".format(node_modules),
+                "{}/webpack-cli".format(node_modules),
+                "{}/webpack-dev-server".format(node_modules),
+                "@aspect_rules_js//js/private/worker:worker.js",
+            ],
+            copy_data_to_bin = False,
+            entry_point = "_{}_webpack_worker.js".format(name),
+            visibility = ["//visibility:public"],
+        )
 
     _webpack_bundle(
         name = name,
@@ -469,45 +389,11 @@ def webpack_bundle(
         env = env,
         output_dir = output_dir,
         entry_points = {entry_point: name} if entry_point else entry_points,
-        webpack_exec_cfg = webpack,
-        webpack_target_cfg = webpack,
-        webpack_worker_exec_cfg = webpack_worker,
-        webpack_worker_target_cfg = webpack_worker,
+        webpack_exec_cfg = webpack_binary_target,
+        webpack_target_cfg = webpack_binary_target,
+        webpack_worker_exec_cfg = webpack_worker_binary_target,
+        webpack_worker_target_cfg = webpack_worker_binary_target,
         use_execroot_entry_point = use_execroot_entry_point,
         supports_workers = supports_workers,
-        allow_execroot_entry_point_with_no_copy_data_to_bin = allow_execroot_entry_point_with_no_copy_data_to_bin,
         **kwargs
-    )
-
-def webpack_binary(name, node_modules):
-    """Create a webpack binary target from linked node_modules in the user's workspace.
-
-    Pass this into the `webpack` attribute of webpack_bundle to use your own linked
-    version of webpack rather than rules_webpack's version, which can help to avoid
-    certain errors caused by having two copies of webpack. The following three packages
-    must be linked into the node_modules virtual store target:
-
-        webpack, webpack-cli, webpack-dev-server
-
-    Args:
-        name: Unique name for the binary target
-        node_modules: Label pointing to the linked node_modules target where
-            webpack is linked, e.g. `//:node_modules`.
-    """
-
-    directory_path(
-        name = "{}_entrypoint".format(name),
-        directory = "{}/webpack/dir".format(node_modules),
-        path = "bin/webpack.js",
-    )
-
-    js_binary(
-        name = name,
-        data = [
-            "{}/webpack".format(node_modules),
-            "{}/webpack-cli".format(node_modules),
-            "{}/webpack-dev-server".format(node_modules),
-        ],
-        entry_point = ":{}_entrypoint".format(name),
-        visibility = ["//visibility:public"],
     )

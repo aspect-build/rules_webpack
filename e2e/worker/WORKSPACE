@@ -19,11 +19,15 @@ nodejs_register_toolchains(
     node_version = DEFAULT_NODE_VERSION,
 )
 
-# Fetch and register the webpack tool
-load("@aspect_rules_webpack//webpack:repositories.bzl", "webpack_repositories")
+load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock")
 
-webpack_repositories(name = "webpack")
+npm_translate_lock(
+    name = "npm",
+    npmrc = "//:.npmrc",
+    pnpm_lock = "//:pnpm-lock.yaml",
+    verify_node_modules_ignored = "//:.bazelignore",
+)
 
-load("@webpack//:npm_repositories.bzl", webpack_npm_repositories = "npm_repositories")
+load("@npm//:repositories.bzl", "npm_repositories")
 
-webpack_npm_repositories()
+npm_repositories()
