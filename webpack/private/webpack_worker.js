@@ -7,7 +7,7 @@
  * protocol.
  */
 
-const worker = require(process.env.RULES_JS_WORKER)
+const worker_protocol = require(process.env.RULES_JS_WORKER)
 const fs = require('fs')
 const path = require('path')
 const WebpackCLI = require('webpack-cli')
@@ -27,6 +27,16 @@ class WebpackWorker extends WebpackCLI {
   /** @type {Function | null} */
   reject = null
 
+  /** @type {console.Console} */
+  console = null
+
+  /**
+   * @param {import("stream").Writable} output
+   */
+  setOutput(output) {
+    this.console = new console.Console(output, output)
+  }
+
   /**
    *
    * @param {import("webpack").StatsError} err
@@ -34,11 +44,11 @@ class WebpackWorker extends WebpackCLI {
    */
   callback(err, stats) {
     if (err && this.reject) {
-      console.err(err)
+      this.console.error(err)
       this.reject(err)
     } else if (!err && this.resolve) {
-      worker.log(stats.toString())
-      this.resolve(true)
+      this.console.log(stats.toString())
+      this.resolve(0)
     }
   }
 
@@ -61,7 +71,7 @@ class WebpackWorker extends WebpackCLI {
       this.options != null &&
       JSON.stringify(options) != JSON.stringify(this.options)
     ) {
-      worker.debug(
+      console.error(
         `[${MNEMONIC}] options have changed. discarding webpack cache.`
       )
       await this.teardown()
@@ -70,7 +80,7 @@ class WebpackWorker extends WebpackCLI {
     if (this.compiler) {
       this.compiler.run(cb)
     } else {
-      worker.debug(options)
+      console.error(options)
       this.compiler = await super.createCompiler(options, cb)
       this.options = options
     }
@@ -80,72 +90,80 @@ class WebpackWorker extends WebpackCLI {
 /** @type {Map<string, WebpackWorker>} */
 const workers = new Map()
 
-/**
- * @argument {string[]} args
- */
 function createOrGetWorker(args) {
   const key = args[args.indexOf('-c') + 1]
   if (!workers.has(key)) {
-    worker.debug(`Couldn't find a worker for ${key}`)
+    console.error(`Couldn't find a worker for ${key}`)
     workers.set(key, new WebpackWorker())
   }
   return workers.get(key)
 }
 
-async function emit(args, inputs) {
-  const wworker = createOrGetWorker(args)
-  const previousInputs = wworker.previousInputs
+async function emit(request) {
+  const inputs = Object.fromEntries(
+    request.inputs.map((input) => [
+      input.path,
+      input.digest.byteLength
+        ? Buffer.from(input.digest).toString('hex')
+        : null,
+    ])
+  )
+  const worker = createOrGetWorker(request.arguments)
+  const previousInputs = worker.previousInputs
   const bazelBin = process.cwd()
   const execRoot = path.resolve(bazelBin, '..', '..', '..')
+
+  worker.setOutput(request.output)
+
   if (previousInputs) {
     const changes = new Set()
     const removals = new Set()
     for (const input of Object.keys(previousInputs)) {
       const absolutePath = path.join(execRoot, input)
       if (!inputs[input]) {
-        wworker.compiler.inputFileSystem.purge(absolutePath)
+        worker.compiler.inputFileSystem.purge(absolutePath)
         removals.add(absolutePath)
       }
     }
     for (const [input, digest] of Object.entries(inputs)) {
       const absolutePath = path.join(execRoot, input)
       if (previousInputs[input] != digest) {
-        wworker.compiler.inputFileSystem.purge(absolutePath)
+        worker.compiler.inputFileSystem.purge(absolutePath)
         changes.add(absolutePath)
       }
     }
-    wworker.compiler.modifiedFiles = changes
-    wworker.compiler.removedFiles = removals
+    worker.compiler.modifiedFiles = changes
+    worker.compiler.removedFiles = removals
     let hasConfigChanges = false
-    for (const config of wworker.options.config) {
+    for (const config of worker.options.config) {
       const configPath = path.join(bazelBin, config)
       if (changes.has(configPath) || removals.has(configPath)) {
         hasConfigChanges = true
-        worker.debug(
+        console.error(
           `Config ${config} has changed. webpack cache will be discarded.`
         )
       }
     }
     if (hasConfigChanges) {
-      worker.debug(
+      console.error(
         `One or more configs have changed. discarding webpack cache.`
       )
-      await wworker.teardown()
+      await worker.teardown()
     }
   }
 
-  if (wworker.compiler) {
+  if (worker.compiler) {
     await new Promise((resolve, reject) =>
-      wworker.compiler.cache.endIdle((err) => {
+      worker.compiler.cache.endIdle((err) => {
         if (err) {
           return reject(err)
         }
-        wworker.compiler.idle = false
+        worker.compiler.idle = false
         resolve()
       })
     )
     await new Promise((resolve, reject) =>
-      wworker.compiler.readRecords((err) => {
+      worker.compiler.readRecords((err) => {
         if (err) {
           return reject(err)
         }
@@ -153,15 +171,15 @@ async function emit(args, inputs) {
       })
     )
 
-    wworker.compiler.fsStartTime = Date.now()
+    worker.compiler.fsStartTime = Date.now()
   }
 
-  wworker.previousInputs = inputs
+  worker.previousInputs = inputs
 
   return new Promise((resolve, reject) => {
-    wworker.resolve = resolve
-    wworker.reject = reject
-    wworker.run([process.argv[0], process.argv[1], ...args])
+    worker.resolve = resolve
+    worker.reject = reject
+    worker.run([process.argv[0], process.argv[1], ...request.arguments])
   })
 }
 
@@ -174,8 +192,8 @@ function getArgsFromParamFile() {
 }
 
 function emitOnce() {
-  worker.debug(`Running ${MNEMONIC} as a standalone process`)
-  worker.debug(
+  console.error(`Running ${MNEMONIC} as a standalone process`)
+  console.error(
     `Started a new process to perform this action. Your build might be misconfigured, try	
       --strategy=${MNEMONIC}=worker`
   )
@@ -184,8 +202,8 @@ function emitOnce() {
 }
 
 function main() {
-  if (worker.runAsWorker(process.argv)) {
-    worker.runWorkerLoop(emit)
+  if (worker_protocol.isPersistentWorker(process.argv)) {
+    worker_protocol.enterWorkerLoop(emit)
   } else {
     emitOnce()
   }
