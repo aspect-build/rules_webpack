@@ -1,7 +1,8 @@
 """Webpack devserver rule definition."""
 
 load("@aspect_rules_js//js:defs.bzl", "js_run_devserver")
-load(":webpack_bundle.bzl", _webpack_binary = "webpack_binary", _webpack_create_configs = "webpack_create_configs")
+load(":webpack_binary.bzl", "webpack_binary")
+load(":webpack_create_configs.bzl", "webpack_create_configs")
 
 def webpack_devserver(
         name,
@@ -27,7 +28,7 @@ def webpack_devserver(
         node_modules: Label pointing to the linked node_modules target where
             webpack is linked, e.g. `//:node_modules`.
 
-            The following three packages must be linked into the node_modules supplied:
+            The following packages must be linked into the node_modules supplied:
 
                 webpack, webpack-cli, webpack-dev-server
 
@@ -85,7 +86,7 @@ def webpack_devserver(
     if chdir:
         unwind_chdir_prefix = "/".join([".."] * len(chdir.split("/"))) + "/"
 
-    webpack_configs = _webpack_create_configs(
+    webpack_configs = webpack_create_configs(
         name = name,
         entry_point = entry_point,
         entry_points = entry_points,
@@ -104,9 +105,10 @@ def webpack_devserver(
 
     webpack_binary_target = "_{}_webpack_binary".format(name)
 
-    _webpack_binary(
+    webpack_binary(
         name = webpack_binary_target,
         node_modules = node_modules,
+        additional_packages = ["webpack-cli", "webpack-dev-server"],
     )
 
     js_run_devserver(

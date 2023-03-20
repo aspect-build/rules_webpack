@@ -43,3 +43,23 @@ diff_test(
     file1 = "bundle.js",
     file2 = "multi.js",
 )
+
+webpack_bundle(
+    name = "bundle_no_execroot_entry_point",
+    srcs = [
+        "module.js",
+    ],
+    entry_point = "index.js",
+    env = {
+        "MY_ENV": "$(execpath :index.js)",
+    },
+    node_modules = "//:node_modules",
+    use_execroot_entry_point = False,
+    webpack_config = ":webpack.config.js",
+)
+
+diff_test(
+    name = "bundle_no_execroot_entry_point_matches",
+    file1 = "bundle.js",
+    file2 = "bundle_no_execroot_entry_point.js",
+)

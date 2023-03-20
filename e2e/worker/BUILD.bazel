@@ -1,4 +1,5 @@
 load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
+load("@aspect_bazel_lib//lib:diff_test.bzl", "diff_test")
 load("@aspect_rules_webpack//webpack:defs.bzl", "webpack_bundle")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 
@@ -16,4 +17,18 @@ write_source_files(
     files = {
         "expected.js_": ":bundle.js",
     },
+)
+
+webpack_bundle(
+    name = "bundle_no_execroot_entry_point",
+    entry_point = "module.js",
+    node_modules = "//:node_modules",
+    supports_workers = True,
+    use_execroot_entry_point = False,
+)
+
+diff_test(
+    name = "bundles_match",
+    file1 = "bundle.js",
+    file2 = "bundle_no_execroot_entry_point.js",
 )

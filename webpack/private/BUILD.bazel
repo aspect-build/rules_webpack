@@ -1,10 +1,18 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
 bzl_library(
+    name = "webpack_binary",
+    srcs = ["webpack_binary.bzl"],
+    visibility = ["//webpack:__subpackages__"],
+)
+
+bzl_library(
     name = "webpack_bundle",
     srcs = ["webpack_bundle.bzl"],
     visibility = ["//webpack:__subpackages__"],
     deps = [
+        ":webpack_binary",
+        ":webpack_create_configs",
         "@aspect_bazel_lib//lib:copy_file",
         "@aspect_bazel_lib//lib:copy_to_bin",
         "@aspect_rules_js//js:libs",
@@ -13,10 +21,20 @@ bzl_library(
 )
 
 bzl_library(
+    name = "webpack_create_configs",
+    srcs = ["webpack_create_configs.bzl"],
+    visibility = ["//webpack:__subpackages__"],
+)
+
+bzl_library(
     name = "webpack_devserver",
     srcs = ["webpack_devserver.bzl"],
     visibility = ["//webpack:__subpackages__"],
-    deps = ["@aspect_rules_js//js:defs"],
+    deps = [
+        ":webpack_binary",
+        ":webpack_create_configs",
+        "@aspect_rules_js//js:defs",
+    ],
 )
 
 exports_files([
