@@ -1,0 +1,74 @@
+load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
+load("//webpack/private:webpack_create_configs.bzl", "webpack_create_configs")
+
+webpack_create_configs(
+    name = "basic",
+    chdir = None,
+    configure_devtool = False,
+    configure_mode = False,
+    entry_point = None,
+    entry_points = {},
+    entry_points_mandatory = False,
+    webpack_config = None,
+)
+
+webpack_create_configs(
+    name = "devtool_mode",
+    chdir = None,
+    configure_devtool = True,
+    configure_mode = True,
+    entry_point = None,
+    entry_points = {},
+    entry_points_mandatory = False,
+    webpack_config = None,
+)
+
+webpack_create_configs(
+    name = "entry",
+    chdir = None,
+    configure_devtool = True,
+    configure_mode = True,
+    entry_point = "entry.js",
+    entry_points = {},
+    entry_points_mandatory = False,
+    webpack_config = None,
+)
+
+webpack_create_configs(
+    name = "entries",
+    chdir = None,
+    configure_devtool = True,
+    configure_mode = True,
+    entry_point = None,
+    entry_points = {
+        "foo": "foo.js",
+        "bar": "bar.js",
+    },
+    entry_points_mandatory = False,
+    webpack_config = None,
+)
+
+webpack_create_configs(
+    name = "chdir",
+    chdir = package_name(),
+    configure_devtool = True,
+    configure_mode = True,
+    entry_point = None,
+    entry_points = {
+        "foo": "foo.js",
+        "bar": "bar.js",
+    },
+    entry_points_mandatory = False,
+    webpack_config = None,
+)
+
+write_source_files(
+    name = "tests",
+    files = {
+        "expected.basic.webpack.js": "basic.webpack.config.js",
+        "expected.devtool_mode.webpack.js": "devtool_mode.webpack.config.js",
+        "expected.entry.webpack.js": "entry.webpack.config.js",
+        "expected.entries.webpack.js": "entries.webpack.config.js",
+        "expected.chdir.webpack.js": "chdir.webpack.config.js",
+    },
+)
