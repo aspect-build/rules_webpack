@@ -255,6 +255,8 @@ def webpack_bundle(
         entry_point = None,
         entry_points = {},
         webpack_config = None,
+        configure_mode = True,
+        configure_devtool = True,
         use_execroot_entry_point = True,
         supports_workers = False,
         **kwargs):
@@ -323,6 +325,23 @@ def webpack_bundle(
 
             See https://webpack.js.org/configuration/
 
+        configure_mode: Configure `mode` in the generated base webpack config.
+
+            `mode` is set to `production` if the Bazel compilation mode is `opt` otherwise it is set to `development`.
+
+            The configured value will be overridden if it is set in a supplied `webpack_config`.
+
+            See https://bazel.build/docs/user-manual#compilation-mode for more info on how to configure the compilation mode.
+
+        configure_devtool: Configure `devtool` in the generated base webpack config.
+
+            `devtool` is set to `eval` if the Bazel compilation mode is `fastbuild`, `eval-source-map` if the Bazel
+            compilation mode is `dbg`, otherwise it is left unset.
+
+            The configured value will be overridden if it is set in a supplied `webpack_config`.
+
+            See https://bazel.build/docs/user-manual#compilation-mode for more info on how to configure the compilation mode.
+
         use_execroot_entry_point: Use the `entry_point` script of the `webpack` `js_binary` that is in the execroot output tree instead of the copy that is in runfiles.
 
             When set, runfiles are hoisted to the target platform when this is configured and included as target
@@ -353,6 +372,8 @@ def webpack_bundle(
         entry_point = entry_point,
         entry_points = entry_points,
         webpack_config = webpack_config,
+        configure_mode = configure_mode,
+        configure_devtool = configure_devtool,
         chdir = chdir,
         entry_points_mandatory = not output_dir,
     )

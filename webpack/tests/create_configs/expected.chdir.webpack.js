@@ -1,6 +1,4 @@
-/** @type {import("webpack").Configuration} */
 module.exports = {
-  entry: { ENTRIES },
   infrastructureLogging: {
     colors: false,
     console: new console.Console(process.stderr, process.stderr),
@@ -21,6 +19,7 @@ module.exports = {
     // and https://webpack.js.org/configuration/output/#outputdevtoolmodulefilenametemplate
     uniqueName: process.env.BAZEL_WORKSPACE,
   },
-  devtool: 'DEVTOOL',
-  mode: 'MODE',
+  entry: {"bar.js":"./bar","foo.js":"./foo"},
+  devtool: 'eval',
+  mode: 'development',
 }
