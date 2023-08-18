@@ -1,0 +1,2 @@
+# for rules_js
+build --enable_runfiles

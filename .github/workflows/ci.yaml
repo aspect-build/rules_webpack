@@ -42,7 +42,12 @@ jobs:
         run: echo "os=macos-latest" >> $GITHUB_OUTPUT
         # Only run on main branch (not PRs) to minimize macOS minutes (billed at 10X)
         # https://docs.github.com/en/billing/managing-billing-for-github-actions/about-billing-for-github-actions#included-storage-and-minutes
-        if: ${{ github.ref == 'refs/heads/main' }}
+        if: github.ref == 'refs/heads/main'
+      - id: windows
+        run: echo "os=windows-latest" >> $GITHUB_OUTPUT
+        # Only run on main branch (or PR branches that contain 'windows') to minimize Windows minutes (billed at 2X)
+        # https://docs.github.com/en/billing/managing-billing-for-github-actions/about-billing-for-github-actions#included-storage-and-minutes
+        if: github.ref == 'refs/heads/main' || contains(github.head_ref, 'windows') || github.head_ref == 'bzlmod'
     outputs:
       # Will look like ["ubuntu-latest", "macos-latest"]
       os: ${{ toJSON(steps.*.outputs.os) }}
@@ -59,17 +64,27 @@ jobs:
       fail-fast: false
       matrix:
         os: ${{ fromJSON(needs.matrix-prep-os.outputs.os) }}
+        bzlmodEnabled: [true, false]
         bazelversion: ${{ fromJSON(needs.matrix-prep-bazelversion.outputs.bazelversions) }}
         folder:
           - '.'
           - 'e2e/loaders'
-          - 'e2e/workspace'
+          - 'e2e/smoke'
           - 'e2e/worker'
         exclude:
           # Don't test macos with Bazel 5 to minimize macOS minutes (billed at 10X)
           # https://docs.github.com/en/billing/managing-billing-for-github-actions/about-billing-for-github-actions#included-storage-and-minutes
           - os: macos-latest
             bazelversion: 5.3.2
+          # Don't test bzlmod with Bazel 5 (not supported)
+          - bazelversion: 5.3.2
+            bzlmodEnabled: true
+          # TODO
+          - folder: e2e/loaders
+            bzlmodEnabled: true
+          # TODO
+          - folder: e2e/worker
+            bzlmodEnabled: true
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -103,12 +118,19 @@ jobs:
         # then use .bazelversion to determine which Bazel version to use
         run: echo "${{ matrix.bazelversion }}" > .bazelversion
 
+      - name: Set bzlmod flag
+        # Store the --enable_bzlmod flag that we add to the test command below
+        # only when we're running bzlmod in our test matrix.
+        id: set_bzlmod_flag
+        if: matrix.bzlmodEnabled
+        run: echo "bzlmod_flag=--enable_bzlmod" >> $GITHUB_OUTPUT
+
       - name: bazel test //...
         env:
           # Bazelisk will download bazel to here, ensure it is cached between runs.
           XDG_CACHE_HOME: ~/.cache/bazel-repo
         working-directory: ${{ matrix.folder }}
-        run: bazel --bazelrc=$GITHUB_WORKSPACE/.github/workflows/ci.bazelrc --bazelrc=.bazelrc test //...
+        run: bazel --bazelrc=${{ github.workspace }}/.github/workflows/ci.bazelrc --bazelrc=.bazelrc test ${{ steps.set_bzlmod_flag.outputs.bzlmod_flag }} //...
 
       - name: run ./test.sh
         working-directory: ${{ matrix.folder }}
