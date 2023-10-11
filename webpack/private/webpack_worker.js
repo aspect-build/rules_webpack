@@ -35,6 +35,12 @@ class WebpackWorker extends WebpackCLI {
    */
   setOutput(output) {
     this.console = new console.Console(output, output)
+
+    // Webpack doesn't always respect log levels.
+    // Override  console.* to write to the worker console.
+    ;['trace', 'info', 'log', 'warn', 'error'].forEach(
+      lvl => (console[lvl] = this.console[lvl].bind(this.console))
+    )
   }
 
   /**
@@ -46,6 +52,10 @@ class WebpackWorker extends WebpackCLI {
     if (err && this.reject) {
       this.console.error(err)
       this.reject(err)
+      // EDIT: fix for https://github.com/aspect-build/rules_webpack/issues/120
+    } else if (stats.hasErrors()) {
+      this.console.log(stats.toString())
+      this.reject('')
     } else if (!err && this.resolve) {
       this.console.log(stats.toString())
       this.resolve(0)
@@ -53,13 +63,15 @@ class WebpackWorker extends WebpackCLI {
   }
 
   async teardown() {
-    await new Promise((resolve, reject) =>
-      this.compiler.close((e) => {
-        if (e) {
-          return reject(e)
-        }
-        resolve()
-      })
+    await new Promise(
+      (resolve, reject) =>
+        this.compiler.close &&
+        this.compiler.close(e => {
+          if (e) {
+            return reject(e)
+          }
+          resolve()
+        })
     )
     this.compiler = null
     this.options = null
@@ -153,15 +165,16 @@ async function emit(request) {
   }
 
   if (worker.compiler) {
-    await new Promise((resolve, reject) =>
-      worker.compiler.cache.endIdle((err) => {
-        if (err) {
-          return reject(err)
-        }
-        worker.compiler.idle = false
-        resolve()
-      })
-    )
+    // TODO: webpack4
+    // await new Promise((resolve, reject) =>
+    //   worker.compiler.cache.endIdle(err => {
+    //     if (err) {
+    //       return reject(err)
+    //     }
+    //     worker.compiler.idle = false
+    //     resolve()
+    //   })
+    // )
     await new Promise((resolve, reject) =>
       worker.compiler.readRecords((err) => {
         if (err) {
