@@ -83,6 +83,12 @@ class WebpackWorker extends WebpackCLI {
       console.error(options)
       this.compiler = await super.createCompiler(options, cb)
       this.options = options
+
+      // The output directory will be cleaned between runs, webpack assumes the output directory will not be modified:
+      // Webpack5: https://github.com/webpack/webpack/blob/v5.36.2/lib/Compiler.js#L783-L788
+      if (this.compiler._assetEmittingPreviousFiles) {
+        this.compiler.hooks.afterEmit.tap("rules_webpack", () => this.compiler._assetEmittingPreviousFiles.clear())
+      }
     }
   }
 }
