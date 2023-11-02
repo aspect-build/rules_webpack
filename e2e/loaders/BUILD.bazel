@@ -1,6 +1,12 @@
 load("@npm//:defs.bzl", "npm_link_all_packages")
 load("@aspect_rules_webpack//webpack:defs.bzl", "webpack_bundle")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@aspect_rules_js//js:defs.bzl", "js_run_devserver")
+load("@npm//:http-server/package_json.bzl", http_server_bin = "bin")
+
+http_server_bin.http_server_binary(
+    name = "http_server",
+)
 
 npm_link_all_packages(name = "node_modules")
 
@@ -60,6 +66,34 @@ webpack_bundle(
     deps = [
         ":node_modules/ts-loader",
     ],
+)
+
+# supports_worker + js_run_devserver
+webpack_bundle(
+    name = "html",
+    srcs = [
+        "src/component.js",
+        "src/index.html",
+        "src/styles.css",
+    ],
+    node_modules = "//:node_modules",
+    output_dir = True,
+    supports_workers = True,  # Required to reproduce https://github.com/aspect-build/rules_webpack/issues/126
+    webpack_config = ":webpack.html.cjs",
+    deps = [
+        ":node_modules/css-loader",
+        ":node_modules/html-webpack-plugin",
+        ":node_modules/mini-css-extract-plugin",
+    ],
+)
+
+# Use a js_run_devserver to reproduce https://github.com/aspect-build/rules_webpack/issues/126
+js_run_devserver(
+    name = "devserver",
+    chdir = package_name(),
+    data = [":html"],
+    log_level = "debug",
+    tool = ":http_server",
 )
 
 build_test(
