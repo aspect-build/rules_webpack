@@ -46,6 +46,10 @@ class WebpackWorker extends WebpackCLI {
     if (err && this.reject) {
       this.console.error(err)
       this.reject(err)
+    } else if (stats.hasErrors() && this.reject) {
+      const statErr = new Error(stats.toJson().errors)
+      this.console.error(statErr)
+      this.reject(statErr)
     } else if (!err && this.resolve) {
       this.console.log(stats.toString())
       this.resolve(0)
