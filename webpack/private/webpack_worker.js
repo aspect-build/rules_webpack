@@ -97,9 +97,9 @@ class WebpackWorker extends WebpackCLI {
 const workers = new Map()
 
 function createOrGetWorker(args) {
-  const key = args[args.indexOf('-c') + 1]
+  const key = args[args.indexOf('--config') + 1]
   if (!workers.has(key)) {
-    console.error(`Couldn't find a worker for ${key}`)
+    console.error(`New ${MNEMONIC} worker for ${key}`)
     workers.set(key, new WebpackWorker())
   }
   return workers.get(key)
@@ -183,6 +183,8 @@ async function emit(request) {
   worker.previousInputs = inputs
 
   return new Promise((resolve, reject) => {
+    console.error(`Running ${MNEMONIC} worker ${path.basename(process.argv[1])}`)
+
     worker.resolve = resolve
     worker.reject = reject
     worker.run([process.argv[0], process.argv[1], ...request.arguments])
