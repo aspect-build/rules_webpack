@@ -92,26 +92,44 @@ class WebpackWorker extends WebpackCLI {
       this.compiler = await super.createCompiler(options, cb)
       this.options = options
 
-      // Necessary cache-clearing after each emit to ensure files are re-written to disk
-      // on each incremental build.
-      this.compiler.hooks.afterEmit.tap("rules_webpack", compilation => {
-        // The output directory will be cleaned between runs, webpack assumes the output directory will not be modified:
-        // Webpack5: https://github.com/webpack/webpack/blob/v5.36.2/lib/Compiler.js#L783-L788
-        if (this.compiler._assetEmittingPreviousFiles) {
-          this.compiler._assetEmittingPreviousFiles.clear()
+      // The output directory will be cleaned between runs, however webpack assumes the
+      // output directory will not be modified and caches the file system state.
+
+      // Webpack5: clear the "previously emitted" cache
+      // https://github.com/webpack/webpack/blob/v5.36.2/lib/Compiler.js#L783-L788
+      if (this.compiler._assetEmittingPreviousFiles) {
+        this.compiler.hooks.afterEmit.tap("rules_webpack", () => this.compiler._assetEmittingPreviousFiles.clear());
+      } else {
+        // Webpack4: patch the compiler to ensure all assets are re-written on each completion
+        const fsCache = new Map()
+        const fsWrites = new Set()
+
+        // Clear the "writes" before compilation.
+        this.compiler.hooks.emit.tap('rules_webpack', () => fsWrites.clear())
+
+        // Cache all file write operations throughout compilation
+        const originalWriteFile = this.compiler.outputFileSystem.writeFile
+        this.compiler.outputFileSystem.writeFile = function workerWriteFile(p, data, cb) {
+          fsCache.set(p, data)
+          fsWrites.add(p)
+          return originalWriteFile.apply(this, arguments)
         }
 
-        // Clear the full "emitting sources" cache in <v5 'futureEmitAssets' mode:
-        // Webpack4: https://github.com/webpack/webpack/blob/v4.47.0/lib/Compiler.js#L374-L404
-        //
-        // Or clear the "emitted assets" 'existsAt' cache:
-        // Webpack4: https://github.com/webpack/webpack/blob/v4.47.0/lib/Compiler.js#L450-L453
-        if (this.compiler.options.output.futureEmitAssets && this.compiler._assetEmittingSourceCache) {
-          this.compiler._assetEmittingSourceCache = new WeakMap()
-        } else {
-          compilation.emittedAssets.clear()
-        }
-      })
+        // Ensure all past write operations are rewritten.
+        this.compiler.hooks.afterEmit.tap('rules_webpack', () => {
+          for (const [p, data] of fsCache.entries()) {
+            if (!fsWrites.has(p)) {
+              // TODO: wait for async write?
+              originalWriteFile.call(this.compiler.outputFileSystem, p, data, () => {})
+            }
+          }
+
+          // Clear the writes-done for the next compilation.
+          fsWrites.clear()
+        })
+
+        // TODO: clear entries when no longer outputted by webpack
+      }
     }
   }
 }
