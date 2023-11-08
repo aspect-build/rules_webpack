@@ -75,9 +75,9 @@ def _create_base_config_impl(ctx):
         template = ctx.file._webpack_config_template,
         output = ctx.outputs.config_out,
         substitutions = {
-            "{{ENTRIES}}": "\n  entry: {},".format(json.encode(entry_mapping)) if entry_mapping else "",
-            "{{DEVTOOL}}": "\n  devtool: '{}',".format(devtool) if devtool else "",
-            "{{MODE}}": "\n  mode: '{}',".format(mode) if mode else "",
+            "{{ENTRIES}}": "\n    entry: {},".format(json.encode(entry_mapping)) if entry_mapping else "",
+            "{{DEVTOOL}}": "\n    devtool: '{}',".format(devtool) if devtool else "",
+            "{{MODE}}": "\n    mode: '{}',".format(mode) if mode else "",
         },
     )
 

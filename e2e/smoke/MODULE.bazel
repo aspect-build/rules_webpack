@@ -1,6 +1,7 @@
 "Bazel dependencies"
 
-bazel_dep(name = "aspect_rules_js", version = "1.29.2")
+bazel_dep(name = "aspect_bazel_lib", version = "1.32.0")
+bazel_dep(name = "aspect_rules_js", version = "1.33.1")
 bazel_dep(name = "bazel_skylib", version = "1.4.1")
 
 bazel_dep(name = "aspect_rules_webpack", version = "0.0.0", dev_dependency = True)
@@ -11,7 +12,12 @@ local_path_override(
 
 npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm")
 npm.npm_translate_lock(
-    name = "npm",
-    pnpm_lock = "//:pnpm-lock.yaml",
+    name = "v4-npm",
+    pnpm_lock = "//v4:pnpm-lock.yaml",
 )
-use_repo(npm, "npm")
+use_repo(npm, "v4-npm")
+npm.npm_translate_lock(
+    name = "v5-npm",
+    pnpm_lock = "//v5:pnpm-lock.yaml",
+)
+use_repo(npm, "v5-npm")

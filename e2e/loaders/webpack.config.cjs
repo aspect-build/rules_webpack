@@ -7,7 +7,10 @@ module.exports = (_env, options) => {
         },
         output: {
             path: path.resolve(__dirname, "dist"),
-            filename: "[name].bundle.js"
+            filename: "[name].bundle.js",
+
+            // Alternative and webpack5 default:
+            // futureEmitAssets: true,
         },
         module: {
             rules: [

@@ -1,14 +1,24 @@
+load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
 load("@aspect_rules_webpack//webpack:defs.bzl", "webpack_bundle")
-load("@bazel_skylib//rules:build_test.bzl", "build_test")
 
 webpack_bundle(
-    name = "bundle",
+    name = "bundle-v4",
     srcs = ["module.js"],
     entry_point = "index.js",
-    node_modules = "//:node_modules",
+    node_modules = "//v4:node_modules",
 )
 
-build_test(
-    name = "test",
-    targets = [":bundle"],
+webpack_bundle(
+    name = "bundle-v5",
+    srcs = ["module.js"],
+    entry_point = "index.js",
+    node_modules = "//v5:node_modules",
+)
+
+write_source_files(
+    name = "bundles",
+    files = {
+        "expected-v4.js_": ":bundle-v4.js",
+        "expected-v5.js_": ":bundle-v5.js",
+    },
 )

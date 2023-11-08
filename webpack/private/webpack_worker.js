@@ -57,14 +57,18 @@ class WebpackWorker extends WebpackCLI {
   }
 
   async teardown() {
-    await new Promise((resolve, reject) =>
-      this.compiler.close((e) => {
-        if (e) {
-          return reject(e)
-        }
-        resolve()
-      })
-    )
+    // Cleanup build compiler outputs
+    // Webpack5+: https://webpack.js.org/migrate/5/#cleanup-the-build-code
+    if (this.compiler.close) {
+      await new Promise((resolve, reject) =>
+        this.compiler.close((e) => {
+          if (e) {
+            return reject(e)
+          }
+          resolve()
+        })
+      )
+    }
     this.compiler = null
     this.options = null
     this.previousInputs = null
@@ -88,11 +92,26 @@ class WebpackWorker extends WebpackCLI {
       this.compiler = await super.createCompiler(options, cb)
       this.options = options
 
-      // The output directory will be cleaned between runs, webpack assumes the output directory will not be modified:
-      // Webpack5: https://github.com/webpack/webpack/blob/v5.36.2/lib/Compiler.js#L783-L788
-      if (this.compiler._assetEmittingPreviousFiles) {
-        this.compiler.hooks.afterEmit.tap("rules_webpack", () => this.compiler._assetEmittingPreviousFiles.clear())
-      }
+      // Necessary cache-clearing after each emit to ensure files are re-written to disk
+      // on each incremental build.
+      this.compiler.hooks.afterEmit.tap("rules_webpack", compilation => {
+        // The output directory will be cleaned between runs, webpack assumes the output directory will not be modified:
+        // Webpack5: https://github.com/webpack/webpack/blob/v5.36.2/lib/Compiler.js#L783-L788
+        if (this.compiler._assetEmittingPreviousFiles) {
+          this.compiler._assetEmittingPreviousFiles.clear()
+        }
+
+        // Clear the full "emitting sources" cache in <v5 'futureEmitAssets' mode:
+        // Webpack4: https://github.com/webpack/webpack/blob/v4.47.0/lib/Compiler.js#L374-L404
+        //
+        // Or clear the "emitted assets" 'existsAt' cache:
+        // Webpack4: https://github.com/webpack/webpack/blob/v4.47.0/lib/Compiler.js#L450-L453
+        if (this.compiler.options.output.futureEmitAssets && this.compiler._assetEmittingSourceCache) {
+          this.compiler._assetEmittingSourceCache = new WeakMap()
+        } else {
+          compilation.emittedAssets.clear()
+        }
+      })
     }
   }
 }
@@ -163,15 +182,18 @@ async function emit(request) {
   }
 
   if (worker.compiler) {
-    await new Promise((resolve, reject) =>
-      worker.compiler.cache.endIdle((err) => {
-        if (err) {
-          return reject(err)
-        }
-        worker.compiler.idle = false
-        resolve()
-      })
-    )
+    // Webpack5: ensure the 'idle' flag is set to false before reading records
+    if (worker.compiler.idle) {
+      await new Promise((resolve, reject) =>
+        worker.compiler.cache.endIdle((err) => {
+          if (err) {
+            return reject(err)
+          }
+          worker.compiler.idle = false
+          resolve()
+        })
+      )
+    }
     await new Promise((resolve, reject) =>
       worker.compiler.readRecords((err) => {
         if (err) {
