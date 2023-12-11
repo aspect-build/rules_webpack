@@ -9,6 +9,15 @@ load("//webpack/private:maybe.bzl", http_archive = "maybe_http_archive")
 
 def rules_webpack_internal_deps():
     "Fetch repositories used for developing the rules"
+
+    # opt-in to 2.0 without forcing users to do so
+    http_archive(
+        name = "aspect_bazel_lib",
+        sha256 = "c858cc637db5370f6fd752478d1153955b4b4cbec7ffe95eb4a47a48499a79c3",
+        strip_prefix = "bazel-lib-2.0.3",
+        url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.0.3/bazel-lib-v2.0.3.tar.gz",
+    )
+
     http_archive(
         name = "io_bazel_rules_go",
         sha256 = "099a9fb96a376ccbbb7d291ed4ecbdfd42f6bc822ab77ae6f1b5cb9e914e94fa",
