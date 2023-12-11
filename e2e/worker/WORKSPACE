@@ -10,6 +10,10 @@ load("@aspect_rules_webpack//webpack:dependencies.bzl", "rules_webpack_dependenc
 
 rules_webpack_dependencies()
 
+load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
+
+rules_js_dependencies()
+
 # Fetch and register a nodejs interpreter, if you haven't already
 
 load("@rules_nodejs//nodejs:repositories.bzl", "DEFAULT_NODE_VERSION", "nodejs_register_toolchains")
