@@ -2,7 +2,7 @@
 # Take care to document any settings that you expect users to apply.
 # Settings that apply only to CI are in .github/workflows/ci.bazelrc
 
-# for rules_js
+# required for rules_js; may be able to remove this once https://github.com/aspect-build/rules_js/pull/1428 lands
 build --enable_runfiles
 
 # Load any settings specific to the current user.

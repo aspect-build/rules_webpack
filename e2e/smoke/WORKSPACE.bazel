@@ -16,6 +16,16 @@ load("@aspect_rules_webpack//webpack:dependencies.bzl", "rules_webpack_dependenc
 
 rules_webpack_dependencies()
 
+load("@bazel_features//:deps.bzl", "bazel_features_deps")
+
+bazel_features_deps()
+
+load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies", "register_coreutils_toolchains")
+
+aspect_bazel_lib_dependencies()
+
+register_coreutils_toolchains()
+
 # Fetch and register a nodejs interpreter, if you haven't already
 
 load("@rules_nodejs//nodejs:repositories.bzl", "DEFAULT_NODE_VERSION", "nodejs_register_toolchains")

@@ -1,6 +1,6 @@
 """Webpack bundle producing rule definition."""
 
-load("@aspect_bazel_lib//lib:copy_file.bzl", "copy_file")
+load("@aspect_bazel_lib//lib:copy_file.bzl", "COPY_FILE_TOOLCHAINS", "copy_file")
 load("@aspect_bazel_lib//lib:copy_to_bin.bzl", "copy_files_to_bin_actions")
 load("@aspect_bazel_lib//lib:expand_make_vars.bzl", "expand_locations", "expand_variables")
 load("@aspect_rules_js//js:defs.bzl", "js_binary")
@@ -240,6 +240,7 @@ _webpack_bundle = rule(
     attrs = lib.attrs,
     outputs = lib.outputs,
     doc = "",
+    toolchains = COPY_FILE_TOOLCHAINS,
 )
 
 def webpack_bundle(
