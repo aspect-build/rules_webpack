@@ -7,6 +7,7 @@ See https://docs.bazel.build/versions/main/skylark/deploying.html#dependencies
 load("//webpack/private:maybe.bzl", http_archive = "maybe_http_archive")
 
 def rules_webpack_dependencies():
+    "Fetch deps"
     http_archive(
         name = "bazel_skylib",
         sha256 = "cd55a062e763b9349921f0f5db8c3933288dc8ba4f76dd9416aac68acee3cb94",
