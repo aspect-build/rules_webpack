@@ -16,9 +16,9 @@ def rules_webpack_dependencies():
 
     http_archive(
         name = "aspect_bazel_lib",
-        sha256 = "5e9588d8407a576771f1e0d8956f541f78610f1b6e4cca29af2a096fccfe3b24",
-        strip_prefix = "bazel-lib-1.39.1",
-        url = "https://github.com/aspect-build/bazel-lib/releases/download/v1.39.1/bazel-lib-v1.39.1.tar.gz",
+        sha256 = "4b32cf6feab38b887941db022020eea5a49b848e11e3d6d4d18433594951717a",
+        strip_prefix = "bazel-lib-2.0.1",
+        url = "https://github.com/aspect-build/bazel-lib/releases/download/v2.0.1/bazel-lib-v2.0.1.tar.gz",
     )
 
     http_archive(
