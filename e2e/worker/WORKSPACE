@@ -14,11 +14,13 @@ load("@bazel_features//:deps.bzl", "bazel_features_deps")
 
 bazel_features_deps()
 
-load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies", "aspect_bazel_lib_register_toolchains")
+load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies", "aspect_bazel_lib_register_toolchains", "register_coreutils_toolchains")
 
 aspect_bazel_lib_dependencies()
 
 aspect_bazel_lib_register_toolchains()
+
+register_coreutils_toolchains()
 
 # Fetch and register a nodejs interpreter, if you haven't already
 
