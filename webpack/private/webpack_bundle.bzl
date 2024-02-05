@@ -121,7 +121,13 @@ def _impl(ctx):
         ])
 
     # Add user specified arguments after rule supplied arguments
-    args.add_all(ctx.attr.args)
+    args.add_all([
+        " ".join([
+            expand_variables(ctx, exp, attribute_name = "args")
+            for exp in expand_locations(ctx, arg, entry_points_srcs + ctx.attr.srcs + ctx.attr.deps + ctx.attr.data).split(" ")
+        ])
+        for arg in ctx.attr.args
+    ])
 
     executable = ctx.executable.webpack_exec_cfg
     execution_requirements = {}
