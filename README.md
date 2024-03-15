@@ -9,7 +9,7 @@ _Need help?_ This ruleset has support provided by https://aspect.dev.
 ## API documentation
 
 - [webpack](https://github.com/aspect-build/rules_webpack/blob/main/docs/rules.md#webpack_bundle)
-- [webpack-dev-server](https://github.com/aspect-build/rules_webpack/blob/main/docs/rules.md#webpack_dev_server)
+- [webpack-devserver](https://github.com/aspect-build/rules_webpack/blob/main/docs/rules.md#webpack_devserver)
 
 ## Installation
 
