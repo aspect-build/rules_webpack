@@ -17,11 +17,15 @@ webpack_bundle(
 
 # Validates that args are properly expanded when
 # a format string is passed
-entryPointFile = 'entry-point.js'
+entry_point_file = "entry-point.js"
+
 webpack_bundle(
     name = "bundle-entry-args-v5",
-    args = ['--entry', '$(rootpath {})'.format(entryPointFile)],
     srcs = ["entry-point.js"],
+    args = [
+        "--entry",
+        "$(rootpath {})".format(entry_point_file),
+    ],
     node_modules = "//v5:node_modules",
 )
 
