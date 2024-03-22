@@ -15,10 +15,21 @@ webpack_bundle(
     node_modules = "//v5:node_modules",
 )
 
+# Validates that args are properly expanded when
+# a format string is passed
+entryPointFile = 'entry-point.js'
+webpack_bundle(
+    name = "bundle-entry-args-v5",
+    args = ['--entry', '$(rootpath {})'.format(entryPointFile)],
+    srcs = ["entry-point.js"],
+    node_modules = "//v5:node_modules",
+)
+
 write_source_files(
     name = "bundles",
     files = {
         "expected-v4.js_": ":bundle-v4.js",
         "expected-v5.js_": ":bundle-v5.js",
+        "expected-v5.js_": ":bundle-entry-args-v5.js",
     },
 )
