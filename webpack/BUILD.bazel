@@ -1,5 +1,5 @@
+load("@aspect_bazel_lib//lib:utils.bzl", bazel_lib_utils = "utils")
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("//webpack/private:is_bazel_7_or_greater.bzl", "is_bazel_7_or_greater")
 
 exports_files(["defs.bzl"])
 
@@ -10,7 +10,7 @@ bzl_library(
     deps = [
         "//webpack/private:webpack_bundle",
         "//webpack/private:webpack_devserver",
-    ] + (["@bazel_tools//tools/build_defs/repo:cache.bzl"] if is_bazel_7_or_greater() else []),
+    ] + (["@bazel_tools//tools/build_defs/repo:cache.bzl"] if bazel_lib_utils.is_bazel_7_or_greater() else []),
 )
 
 bzl_library(
@@ -20,5 +20,5 @@ bzl_library(
     deps = [
         "@bazel_tools//tools/build_defs/repo:http.bzl",
         "@bazel_tools//tools/build_defs/repo:utils.bzl",
-    ] + (["@bazel_tools//tools/build_defs/repo:cache.bzl"] if is_bazel_7_or_greater() else []),
+    ] + (["@bazel_tools//tools/build_defs/repo:cache.bzl"] if bazel_lib_utils.is_bazel_7_or_greater() else []),
 )
