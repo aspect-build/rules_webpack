@@ -28,8 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      # TODO(alex): add testing on Bazel 7
-      - id: bazel_6
+      - id: bazel_7
         run: echo "bazelversion=$(head -n 1 .bazelversion)" >> $GITHUB_OUTPUT
     outputs:
       # Will look like ["<version from .bazelversion>", ...]
