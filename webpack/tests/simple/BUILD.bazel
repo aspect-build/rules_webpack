@@ -1,5 +1,5 @@
-load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
 load("@aspect_bazel_lib//lib:diff_test.bzl", "diff_test")
+load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
 load("//webpack:defs.bzl", "webpack_bundle")
 
 webpack_bundle(

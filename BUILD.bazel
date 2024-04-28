@@ -1,5 +1,5 @@
-load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@bazel_gazelle//:def.bzl", "gazelle", "gazelle_binary")
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@buildifier_prebuilt//:rules.bzl", "buildifier")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 
@@ -11,16 +11,23 @@ gazelle_binary(
 )
 
 # gazelle:exclude @bazel/*
+
 gazelle(
     name = "gazelle",
     gazelle = "gazelle_bin",
 )
 
 buildifier(
+    name = "buildifier",
+    exclude_patterns = ["./.git/*"],
+    lint_mode = "fix",
+    mode = "fix",
+    tags = ["manual"],  # tag as manual so windows ci does not build it by default
+)
+
+buildifier(
     name = "buildifier.check",
-    exclude_patterns = [
-        "./.git/*",
-    ],
+    exclude_patterns = ["./.git/*"],
     lint_mode = "warn",
     mode = "diff",
     tags = ["manual"],  # tag as manual so windows ci does not build it by default
