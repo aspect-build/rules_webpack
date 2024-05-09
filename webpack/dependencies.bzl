@@ -6,6 +6,7 @@ See https://docs.bazel.build/versions/main/skylark/deploying.html#dependencies
 
 load("//webpack/private:maybe.bzl", http_archive = "maybe_http_archive")
 
+# buildifier: disable=function-docstring
 def rules_webpack_dependencies():
     http_archive(
         name = "bazel_skylib",
@@ -31,4 +32,11 @@ def rules_webpack_dependencies():
         name = "rules_nodejs",
         sha256 = "764a3b3757bb8c3c6a02ba3344731a3d71e558220adcb0cf7e43c9bba2c37ba8",
         urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.8.2/rules_nodejs-core-5.8.2.tar.gz"],
+    )
+
+    http_archive(
+        name = "bazel_features",
+        sha256 = "f3082bfcdca73dc77dcd68faace806135a2e08c230b02b1d9fbdbd7db9d9c450",
+        strip_prefix = "bazel_features-0.1.0",
+        url = "https://github.com/bazel-contrib/bazel_features/releases/download/v0.1.0/bazel_features-v0.1.0.tar.gz",
     )
