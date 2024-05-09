@@ -8,10 +8,6 @@ load("//webpack:dependencies.bzl", "rules_webpack_dependencies")
 
 rules_webpack_dependencies()
 
-load("@aspect_rules_js//js:repositories.bzl", "rules_js_dependencies")
-
-rules_js_dependencies()
-
 load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies", "register_coreutils_toolchains")
 
 aspect_bazel_lib_dependencies()
