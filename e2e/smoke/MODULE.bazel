@@ -11,11 +11,15 @@ bazel_dep(name = "bazel_skylib", version = "1.4.1", dev_dependency = True)
 npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm", dev_dependency = True)
 npm.npm_translate_lock(
     name = "v4-npm",
+    npmrc = "//:.npmrc",
     pnpm_lock = "//v4:pnpm-lock.yaml",
+    verify_node_modules_ignored = "//:.bazelignore",
 )
 use_repo(npm, "v4-npm")
 npm.npm_translate_lock(
     name = "v5-npm",
+    npmrc = "//:.npmrc",
     pnpm_lock = "//v5:pnpm-lock.yaml",
+    verify_node_modules_ignored = "//:.bazelignore",
 )
 use_repo(npm, "v5-npm")
