@@ -25,8 +25,10 @@ load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock")
 npm_translate_lock(
     name = "npm",
     no_optional = True,
-    pnpm_lock = "@//:pnpm-lock.yaml",
+    npmrc = "//:.npmrc",
+    pnpm_lock = "//:pnpm-lock.yaml",
     pnpm_version = "6.29.1",
+    verify_node_modules_ignored = "//:.bazelignore",
 )
 
 load("@npm//:repositories.bzl", "npm_repositories")
