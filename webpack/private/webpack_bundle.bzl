@@ -164,12 +164,13 @@ def _impl(ctx):
     inputs.extend(ctx.files.entry_points)
     inputs = depset(
         copy_files_to_bin_actions(ctx, inputs) + no_copy_bin_inputs,
-        transitive = [webpack_runfiles] + [js_lib_helpers.gather_files_from_js_providers(
+        transitive = [webpack_runfiles] + [js_lib_helpers.gather_files_from_js_infos(
             targets = ctx.attr.srcs + ctx.attr.deps,
+            include_sources = True,
+            include_types = False,
             include_transitive_sources = True,
-            # Upstream Type-check actions should not be triggered by bundling
-            include_declarations = False,
-            include_npm_linked_packages = True,
+            include_transitive_types = False,
+            include_npm_sources = True,
         )],
     )
 
@@ -184,14 +185,14 @@ def _impl(ctx):
         env = env,
     )
 
-    npm_linked_packages = js_lib_helpers.gather_npm_linked_packages(
+    # If a subset of linked npm dependencies are not bundled, it is up to the user to re-specify
+    # these in `data` if they are runtime dependencies to progagate to binary rules or `srcs` if
+    # they are to be propagated to downstream build targets.
+    npm_sources = js_lib_helpers.gather_npm_sources(
         srcs = ctx.attr.srcs,
         deps = [],
     )
-
-    npm_package_store_deps = js_lib_helpers.gather_npm_package_store_deps(
-        # Since we're bundling, only propagate `data` npm packages to the direct dependencies of
-        # downstream linked `npm_package` targets instead of the common `data` and `deps` pattern.
+    npm_package_store_infos = js_lib_helpers.gather_npm_package_store_infos(
         targets = ctx.attr.data,
     )
 
@@ -207,19 +208,15 @@ def _impl(ctx):
 
     return [
         js_info(
-            npm_linked_package_files = npm_linked_packages.direct_files,
-            npm_linked_packages = npm_linked_packages.direct,
-            npm_package_store_deps = npm_package_store_deps,
+            target = ctx.label,
             sources = output_sources_depset,
-            # Since we're bundling, we don't propagate linked npm packages from dependencies since
-            # they are bundled and the dependencies are dropped. If a subset of linked npm
-            # dependencies are not bundled it is up the the user to re-specify these in `data` if
-            # they are runtime dependencies to propagate to binary rules or `srcs` if they are to be
-            # propagated to downstream build targets.
-            transitive_npm_linked_package_files = npm_linked_packages.transitive_files,
-            transitive_npm_linked_packages = npm_linked_packages.transitive,
-            # Since we're bundling, we don't propagate any transitive output_sources from dependencies
+            types = depset(),  # webpack does not emit types directly
+            # Since we're bundling, don't propogate any transitive sources or declarations since sources
+            # are typically bundled into the output.
             transitive_sources = output_sources_depset,
+            transitive_types = depset(),
+            npm_sources = npm_sources,
+            npm_package_store_infos = npm_package_store_infos,
         ),
         DefaultInfo(
             files = output_sources_depset,

@@ -4,9 +4,9 @@ local_path_override(
     path = "../..",
 )
 
-bazel_dep(name = "aspect_bazel_lib", version = "1.32.0", dev_dependency = True)
-bazel_dep(name = "aspect_rules_js", version = "1.33.1", dev_dependency = True)
-bazel_dep(name = "bazel_skylib", version = "1.4.1", dev_dependency = True)
+bazel_dep(name = "aspect_bazel_lib", version = "2.7.3", dev_dependency = True)
+bazel_dep(name = "aspect_rules_js", version = "2.0.0-rc0", dev_dependency = True)
+bazel_dep(name = "bazel_skylib", version = "1.5.0", dev_dependency = True)
 
 npm = use_extension("@aspect_rules_js//npm:extensions.bzl", "npm", dev_dependency = True)
 npm.npm_translate_lock(
