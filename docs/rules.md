@@ -55,6 +55,9 @@ This is a macro that uses
 [js_run_devserver](https://github.com/aspect-build/rules_js/blob/main/docs/js_run_devserver.md)
 under the hood.
 
+When using ibazel, the devserver will automatically reload when the source files change. Note that
+ibazel does not work when using bazel `alias` targets, see https://github.com/bazelbuild/bazel-watcher/issues/100.
+
 
 **PARAMETERS**
 
