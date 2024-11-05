@@ -1,0 +1,33 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@aspect_rules_webpack//webpack:defs.bzl", "webpack_bundle")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@npm//:defs.bzl", "npm_link_all_packages")
+load("@npm//:http-server/package_json.bzl", http_server_bin = "bin")
+
+npm_link_all_packages(name = "node_modules")
+
+js_library(
+    name = "webpack-config",
+    srcs = ["webpack.config.cjs"],
+    deps = [
+        ":node_modules/ts-loader",
+    ],
+)
+
+webpack_bundle(
+    name = "basic",
+    srcs = [
+        "src/index.ts",
+        "tsconfig.json",
+    ],
+    node_modules = "//:node_modules",
+    output_dir = True,
+    webpack_config = ":webpack-config",
+)
+
+build_test(
+    name = "test",
+    targets = [
+        ":basic",
+    ],
+)
