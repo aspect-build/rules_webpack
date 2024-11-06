@@ -53,6 +53,7 @@ _attrs = {
     "webpack_configs": attr.label_list(
         allow_files = True,
         doc = "Internal use only",
+        providers = [JsInfo],
     ),
     "use_execroot_entry_point": attr.bool(
         default = True,
@@ -117,7 +118,7 @@ def _impl(ctx):
     for (key, value) in ctx.attr.env.items():
         env[key] = " ".join([
             expand_variables(ctx, exp, attribute_name = "env")
-            for exp in expand_locations(ctx, value, entry_points_srcs + ctx.attr.srcs + ctx.attr.deps + ctx.attr.data).split(" ")
+            for exp in expand_locations(ctx, value, entry_points_srcs + ctx.attr.srcs + ctx.attr.deps + ctx.attr.data + ctx.attr.webpack_configs).split(" ")
         ])
 
     # Add user specified arguments after rule supplied arguments
@@ -165,7 +166,7 @@ def _impl(ctx):
     inputs = depset(
         copy_files_to_bin_actions(ctx, inputs) + no_copy_bin_inputs,
         transitive = [webpack_runfiles] + [js_lib_helpers.gather_files_from_js_infos(
-            targets = ctx.attr.srcs + ctx.attr.deps,
+            targets = ctx.attr.srcs + ctx.attr.deps + ctx.attr.webpack_configs,
             include_sources = True,
             include_types = False,
             include_transitive_sources = True,
