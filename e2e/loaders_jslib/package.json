@@ -1,7 +1,4 @@
 {
-  "scripts": {
-    "clean": "rm -rf dist node_modules"
-  },
   "devDependencies": {
     "css-loader": "6.7.3",
     "mini-css-extract-plugin": "2.7.5",
@@ -14,5 +11,8 @@
   "dependencies": {
     "html-webpack-plugin": "^5.5.3",
     "http-server": "^14.1.1"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": []
   }
 }

@@ -118,7 +118,7 @@ def _impl(ctx):
     for (key, value) in ctx.attr.env.items():
         env[key] = " ".join([
             expand_variables(ctx, exp, attribute_name = "env")
-            for exp in expand_locations(ctx, value, entry_points_srcs + ctx.attr.srcs + ctx.attr.deps + ctx.attr.data + ctx.attr.webpack_configs).split(" ")
+            for exp in expand_locations(ctx, value, entry_points_srcs + ctx.attr.srcs + ctx.attr.deps + ctx.attr.data).split(" ")
         ])
 
     # Add user specified arguments after rule supplied arguments
