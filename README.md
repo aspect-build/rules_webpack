@@ -4,7 +4,7 @@ Note this repository is in early development and may still have breaking changes
 
 Ask in #javascript in slack.bazel.build if you'd like to contribute.
 
-_Need help?_ This ruleset has support provided by https://aspect.dev.
+_Need help?_ This ruleset has support provided by https://aspect.build/services.
 
 ## API documentation
 
