@@ -120,7 +120,7 @@ def webpack_create_configs(
     if entry_points_mandatory and not entry_point and not entry_points:
         fail("One of entry_point or entry_points must be specified")
 
-    default_config = "%s.webpack.config.js" % name
+    default_config = "%s.webpack.config.cjs" % name
     _create_base_config(
         name = "_%s_config" % name,
         config_out = default_config,
