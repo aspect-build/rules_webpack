@@ -65,10 +65,10 @@ webpack_create_configs(
 write_source_files(
     name = "tests",
     files = {
-        "expected.basic.webpack.js": "basic.webpack.config.js",
-        "expected.devtool_mode.webpack.js": "devtool_mode.webpack.config.js",
-        "expected.entry.webpack.js": "entry.webpack.config.js",
-        "expected.entries.webpack.js": "entries.webpack.config.js",
-        "expected.chdir.webpack.js": "chdir.webpack.config.js",
+        "expected.basic.webpack.js": "basic.webpack.config.cjs",
+        "expected.devtool_mode.webpack.js": "devtool_mode.webpack.config.cjs",
+        "expected.entry.webpack.js": "entry.webpack.config.cjs",
+        "expected.entries.webpack.js": "entries.webpack.config.cjs",
+        "expected.chdir.webpack.js": "chdir.webpack.config.cjs",
     },
 )
