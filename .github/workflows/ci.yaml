@@ -82,6 +82,11 @@ jobs:
           # TODO
           - folder: e2e/worker
             bzlmod: 1
+          # bazel 7 linux tested on Aspect Workflows
+          - os: ubuntu
+            bazel-version:
+              major: 7
+            bzlmod: 1
 
     steps:
       - uses: actions/checkout@v4
