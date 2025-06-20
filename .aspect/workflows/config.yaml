@@ -1,0 +1,43 @@
+# See https://docs.aspect.build/workflows/configuration
+workspaces:
+    .:
+        icon: webpack
+        label: rules_webpack
+    e2e/loaders:
+        icon: bazel
+        tasks:
+            - test:
+                  queue: aspect-medium
+            - buildifier:
+                  without: true
+    e2e/loaders_jslib:
+        icon: bazel
+        tasks:
+            - test:
+                  queue: aspect-medium
+            - buildifier:
+                  without: true
+    e2e/smoke:
+        icon: bazel
+        tasks:
+            - test:
+                  queue: aspect-medium
+            - buildifier:
+                  without: true
+    e2e/worker:
+        icon: bazel
+        tasks:
+            - test:
+                  queue: aspect-medium
+            - buildifier:
+                  without: true
+tasks:
+    - checkout:
+          update_strategy: rebase
+    - test:
+    - buildifier:
+          queue: aspect-medium
+    - finalization:
+          queue: aspect-small
+notifications:
+    github: {}
