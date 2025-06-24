@@ -16,3 +16,5 @@ _Need help?_ This ruleset has support provided by https://aspect.build/services.
 From the release you wish to use:
 <https://github.com/aspect-build/rules_webpack/releases>
 copy the WORKSPACE snippet into your `WORKSPACE` file.
+
+foobar
