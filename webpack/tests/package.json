@@ -4,5 +4,8 @@
     "js-yaml": "4.1.0",
     "sass-loader": "13.1.0",
     "sass": "1.55.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": []
   }
 }
