@@ -24,7 +24,7 @@ npm_translate_lock(
     no_optional = True,
     npmrc = "//:.npmrc",
     pnpm_lock = "//:pnpm-lock.yaml",
-    pnpm_version = "6.29.1",
+    pnpm_version = "9.0.0",
     verify_node_modules_ignored = "//:.bazelignore",
 )
 
