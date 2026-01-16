@@ -1,0 +1,16 @@
+load("@aspect_rules_webpack//webpack:defs.bzl", "webpack_bundle")
+load("@bazel_lib//lib:write_source_files.bzl", "write_source_files")
+
+webpack_bundle(
+    name = "bundle",
+    srcs = ["module.js"],
+    entry_point = "index.js",
+    node_modules = "//:node_modules",
+)
+
+write_source_files(
+    name = "bundles",
+    files = {
+        "expected.js_": ":bundle.js",
+    },
+)

@@ -66,6 +66,7 @@ jobs:
           - '.'
           - 'e2e/loaders'
           - 'e2e/smoke'
+          - 'e2e/smoke_rjs3'
           - 'e2e/worker'
         exclude:
           # Don't test MacOS and Windows against secondary bazel version to minimize minutes (billed at 10X and 2X respectively)
@@ -82,6 +83,12 @@ jobs:
           # TODO
           - folder: e2e/worker
             bzlmod: 1
+          # rules_js v3 is bzlmod-only and requires bazel 7+
+          - folder: e2e/smoke_rjs3
+            bzlmod: 0
+          - folder: e2e/smoke_rjs3
+            bazel-version:
+              major: 6
           # bazel 7 linux tested on Aspect Workflows
           - os: ubuntu
             bazel-version:
