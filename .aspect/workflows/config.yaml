@@ -24,6 +24,13 @@ workspaces:
                   queue: aspect-medium
             - buildifier:
                   without: true
+    e2e/smoke_rjs3:
+        icon: bazel
+        tasks:
+            - test:
+                  queue: aspect-medium
+            - buildifier:
+                  without: true
     e2e/worker:
         icon: bazel
         tasks:
