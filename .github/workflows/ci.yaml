@@ -133,8 +133,6 @@ jobs:
             --build_tag_filters=-skip-on-bazel${{ matrix.bazel-version.major }} \
             --enable_bzlmod=${{ matrix.bzlmod }} \
             //...
-        env:
-          XDG_CACHE_HOME: ~/.cache/xdg-cache # bazelisk will download bazel to here
 
       - name: run ./test.sh
         working-directory: ${{ matrix.folder }}
