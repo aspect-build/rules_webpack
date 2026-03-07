@@ -1,3 +1,2 @@
-# build without the bytes
-common --remote_download_outputs=minimal
-common --nobuild_runfile_links
+# Flags for Aspect Workflows are provided by tools/preset.bazelrc via each workspace's .bazelrc
+# and activated by --config=ci in .aspect/workflows/config.yaml bazel.flags

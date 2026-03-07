@@ -3,45 +3,102 @@ workspaces:
     .:
         icon: webpack
         label: rules_webpack
+        tasks:
+            # Root repository is bzlmod-only
+            - bazel-7-no-bzlmod:
+                  without: true
     e2e/loaders:
         icon: bazel
         tasks:
-            - test:
-                  queue: aspect-medium
+            # loaders only has WORKSPACE (no MODULE.bazel)
+            - bazel-7:
+                  without: true
+            - bazel-8:
+                  without: true
+            - bazel-9:
+                  without: true
             - buildifier:
                   without: true
     e2e/loaders_jslib:
         icon: bazel
         tasks:
-            - test:
-                  queue: aspect-medium
+            # loaders_jslib only has WORKSPACE (no MODULE.bazel)
+            - bazel-7:
+                  without: true
+            - bazel-8:
+                  without: true
+            - bazel-9:
+                  without: true
             - buildifier:
                   without: true
     e2e/smoke:
         icon: bazel
         tasks:
-            - test:
-                  queue: aspect-medium
             - buildifier:
                   without: true
     e2e/smoke_rjs3:
         icon: bazel
         tasks:
-            - test:
-                  queue: aspect-medium
+            # smoke_rjs3 is bzlmod-only
+            - bazel-7-no-bzlmod:
+                  without: true
             - buildifier:
                   without: true
     e2e/worker:
         icon: bazel
         tasks:
-            - test:
-                  queue: aspect-medium
+            # worker MODULE.bazel not yet migrated (TODO)
+            - bazel-7:
+                  without: true
+            - bazel-8:
+                  without: true
+            - bazel-9:
+                  without: true
             - buildifier:
                   without: true
+bazel:
+    flags:
+        - --config=ci
 tasks:
     - checkout:
           update_strategy: rebase
     - test:
+          name: Bazel 7
+          id: bazel-7
+          bazel:
+              flags:
+                  - --test_tag_filters=-skip-on-bazel7
+                  - --build_tag_filters=-skip-on-bazel7
+          env:
+              USE_BAZEL_VERSION: 7.x
+    - test:
+          name: Bazel 7 (no bzlmod)
+          id: bazel-7-no-bzlmod
+          bazel:
+              flags:
+                  - --noenable_bzlmod
+                  - --test_tag_filters=-skip-on-bazel7
+                  - --build_tag_filters=-skip-on-bazel7
+          env:
+              USE_BAZEL_VERSION: 7.x
+    - test:
+          name: Bazel 8
+          id: bazel-8
+          bazel:
+              flags:
+                  - --test_tag_filters=-skip-on-bazel8
+                  - --build_tag_filters=-skip-on-bazel8
+          env:
+              USE_BAZEL_VERSION: 8.x
+    - test:
+          name: Bazel 9
+          id: bazel-9
+          bazel:
+              flags:
+                  - --test_tag_filters=-skip-on-bazel9
+                  - --build_tag_filters=-skip-on-bazel9
+          env:
+              USE_BAZEL_VERSION: 9.x
     - buildifier:
           queue: aspect-medium
     - finalization:
