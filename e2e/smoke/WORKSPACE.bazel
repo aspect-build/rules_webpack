@@ -38,9 +38,19 @@ npm_translate_lock(
     verify_node_modules_ignored = "//:.bazelignore",
 )
 
+npm_translate_lock(
+    name = "rspack-npm",
+    npmrc = "//:.npmrc",
+    pnpm_lock = "//rspack:pnpm-lock.yaml",
+    verify_node_modules_ignored = "//:.bazelignore",
+)
+
+load("@rspack-npm//:repositories.bzl", rspack_npm_repositories = "npm_repositories")
 load("@v4-npm//:repositories.bzl", v4_npm_repositories = "npm_repositories")
 load("@v5-npm//:repositories.bzl", v5_npm_repositories = "npm_repositories")
 
 v4_npm_repositories()
 
 v5_npm_repositories()
+
+rspack_npm_repositories()

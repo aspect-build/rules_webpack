@@ -23,3 +23,10 @@ npm.npm_translate_lock(
     verify_node_modules_ignored = "//:.bazelignore",
 )
 use_repo(npm, "v5-npm")
+npm.npm_translate_lock(
+    name = "rspack-npm",
+    npmrc = "//:.npmrc",
+    pnpm_lock = "//rspack:pnpm-lock.yaml",
+    verify_node_modules_ignored = "//:.bazelignore",
+)
+use_repo(npm, "rspack-npm")
