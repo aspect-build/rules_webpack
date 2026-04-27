@@ -63,3 +63,40 @@ diff_test(
     file1 = "bundle.js",
     file2 = "bundle_no_execroot_entry_point.js",
 )
+
+webpack_bundle(
+    name = "rspack-bundle",
+    srcs = [
+        "module.js",
+    ],
+    bundler = "rspack",
+    entry_point = "index.js",
+    env = {
+        "MY_ENV": "$(execpath :index.js)",
+    },
+    node_modules = "//:node_modules",
+    webpack_config = ":rspack.config.js",
+)
+
+write_source_files(
+    name = "write_rspack_bundle",
+    files = {
+        "expected-rspack.js_": ":rspack-bundle.js",
+    },
+)
+
+diff_test(
+    name = "rspack_bundle_matches_expected",
+    file1 = "expected-rspack.js_",
+    file2 = "rspack-bundle.js",
+)
+
+webpack_bundle(
+    name = "rspack-bundle-generated",
+    srcs = [
+        "module.js",
+    ],
+    bundler = "rspack",
+    entry_point = "index.js",
+    node_modules = "//:node_modules",
+)

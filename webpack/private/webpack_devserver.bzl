@@ -1,6 +1,7 @@
 """Webpack devserver rule definition."""
 
 load("@aspect_rules_js//js:defs.bzl", "js_run_devserver")
+load(":rspack_binary.bzl", "rspack_binary")
 load(":webpack_binary.bzl", "webpack_binary")
 load(":webpack_create_configs.bzl", "webpack_create_configs")
 
@@ -17,6 +18,7 @@ def webpack_devserver(
         args = [],
         data = [],
         mode = "development",
+        bundler = "webpack",
         **kwargs):
     """Runs the webpack devserver.
 
@@ -31,11 +33,13 @@ def webpack_devserver(
         name: A unique name for this target.
 
         node_modules: Label pointing to the linked node_modules target where
-            webpack is linked, e.g. `//:node_modules`.
+            the bundler is linked, e.g. `//:node_modules`.
 
-            The following packages must be linked into the node_modules supplied:
-
+            For webpack, the following packages must be linked:
                 webpack, webpack-cli, webpack-dev-server
+
+            For rspack, the following packages must be linked:
+                @rspack/core, @rspack/cli, @rspack/dev-server
 
         entry_point: The point where to start the application bundling process.
 
@@ -97,12 +101,17 @@ def webpack_devserver(
 
         mode: The mode to pass to `--mode`.
 
+        bundler: The bundler to use. Either "webpack" (default) or "rspack".
+
         **kwargs: Additional arguments. See [js_run_devserver](https://github.com/aspect-build/rules_js/blob/main/docs/js_run_devserver.md).
     """
     if kwargs.pop("command", None):
         fail("command attribute is invalid in webpack_devserver. Use js_run_devserver directly instead.")
     if kwargs.pop("tool", None):
         fail("tool attribute is invalid in webpack_devserver. Use js_run_devserver directly instead.")
+
+    if bundler not in ["webpack", "rspack"]:
+        fail("bundler must be either 'webpack' or 'rspack', got: {}".format(bundler))
 
     unwind_chdir_prefix = ""
     if chdir:
@@ -119,21 +128,33 @@ def webpack_devserver(
         entry_points_mandatory = False,  # devserver rule doesn't have outputs so entry points are not needed to predict output files
     )
 
+    # Rspack doesn't support --merge, so use only the user's config when provided.
+    configs_to_use = webpack_configs
+    if bundler == "rspack" and len(webpack_configs) > 1:
+        configs_to_use = [webpack_configs[1]]
+
     config_args = []
-    for config in webpack_configs:
+    for config in configs_to_use:
         config_args.append("--config")
         config_args.append("{}$(rootpath {})".format(unwind_chdir_prefix, config))
 
-    if len(webpack_configs) > 1:
+    if len(configs_to_use) > 1:
         config_args.append("--merge")
 
     webpack_binary_target = "_{}_webpack_binary".format(name)
 
-    webpack_binary(
-        name = webpack_binary_target,
-        node_modules = node_modules,
-        additional_packages = ["webpack-cli", "webpack-dev-server"],
-    )
+    if bundler == "rspack":
+        rspack_binary(
+            name = webpack_binary_target,
+            node_modules = node_modules,
+            additional_packages = ["@rspack/cli"],
+        )
+    else:
+        webpack_binary(
+            name = webpack_binary_target,
+            node_modules = node_modules,
+            additional_packages = ["webpack-cli", "webpack-dev-server"],
+        )
 
     js_run_devserver(
         name = name,

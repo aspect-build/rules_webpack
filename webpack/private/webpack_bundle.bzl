@@ -7,6 +7,7 @@ load("@aspect_rules_js//js:defs.bzl", "js_binary")
 load("@aspect_rules_js//js:libs.bzl", "js_lib_helpers")
 load("@aspect_rules_js//js:providers.bzl", "JsInfo", "js_info")
 load("@bazel_skylib//lib:paths.bzl", "paths")
+load(":rspack_binary.bzl", "rspack_binary")
 load(":webpack_binary.bzl", "webpack_binary")
 load(":webpack_create_configs.bzl", "webpack_create_configs")
 
@@ -32,6 +33,10 @@ _attrs = {
         allow_files = True,
     ),
     "supports_workers": attr.bool(),
+    "bundler": attr.string(
+        default = "webpack",
+        doc = "Internal use only - the bundler type being used",
+    ),
     "webpack_exec_cfg": attr.label(
         executable = True,
         cfg = "exec",
@@ -93,11 +98,17 @@ def _impl(ctx):
     # See CLI documentation at https://webpack.js.org/api/cli/
     args = ctx.actions.args()
 
-    for config in ctx.files.webpack_configs:
+    # Rspack doesn't support --merge, so use only the user's config when provided.
+    configs_to_use = ctx.files.webpack_configs
+    if ctx.attr.bundler == "rspack" and len(ctx.files.webpack_configs) > 1:
+        configs_to_use = [ctx.files.webpack_configs[1]]
+
+    for config in configs_to_use:
         args.add_all(["--config", _relpath(ctx, config)])
         inputs.append(config)
 
-    if len(ctx.files.webpack_configs) > 1:
+    # Webpack supports merging multiple configs
+    if len(configs_to_use) > 1 and ctx.attr.bundler == "webpack":
         args.add("--merge")
 
     if ctx.attr.output_dir:
@@ -259,18 +270,21 @@ def webpack_bundle(
         configure_devtool = True,
         use_execroot_entry_point = True,
         supports_workers = False,
+        bundler = "webpack",
         **kwargs):
-    """Runs the webpack-cli under bazel
+    """Runs webpack or rspack bundler under bazel
 
     Args:
         name: A unique name for this target.
 
         node_modules: Label pointing to the linked node_modules target where
-            webpack is linked, e.g. `//:node_modules`.
+            the bundler is linked, e.g. `//:node_modules`.
 
-            The following packages must be linked into the node_modules supplied:
-
+            For webpack, the following packages must be linked:
                 webpack, webpack-cli
+
+            For rspack, the following packages must be linked:
+                @rspack/core, @rspack/cli
 
         srcs: Non-entry point JavaScript source files from the workspace.
 
@@ -356,16 +370,28 @@ def webpack_bundle(
 
             Allows you to enable the Bazel Worker strategy for this library.
 
+        bundler: The bundler to use. Either "webpack" (default) or "rspack".
+
         **kwargs: Additional arguments
     """
 
+    if bundler not in ["webpack", "rspack"]:
+        fail("bundler must be either 'webpack' or 'rspack', got: {}".format(bundler))
+
     webpack_binary_target = "_{}_webpack_binary".format(name)
 
-    webpack_binary(
-        name = webpack_binary_target,
-        node_modules = node_modules,
-        additional_packages = ["webpack-cli"],
-    )
+    if bundler == "rspack":
+        rspack_binary(
+            name = webpack_binary_target,
+            node_modules = node_modules,
+            additional_packages = ["@rspack/cli"],
+        )
+    else:
+        webpack_binary(
+            name = webpack_binary_target,
+            node_modules = node_modules,
+            additional_packages = ["webpack-cli"],
+        )
 
     webpack_configs = webpack_create_configs(
         name = name,
@@ -386,14 +412,25 @@ def webpack_bundle(
             src = "@aspect_rules_webpack//webpack/private:webpack_worker.js",
             out = "_{}_webpack_worker.js".format(name),
         )
-        js_binary(
-            name = webpack_worker_binary_target,
-            data = [
+
+        worker_data = []
+        if bundler == "rspack":
+            worker_data = [
+                "{}/@rspack/core".format(node_modules),
+                "{}/@rspack/cli".format(node_modules),
+                "@aspect_rules_js//js/private/worker:worker.js",
+            ]
+        else:
+            worker_data = [
                 "{}/webpack".format(node_modules),
                 "{}/webpack-cli".format(node_modules),
                 "{}/webpack-dev-server".format(node_modules),
                 "@aspect_rules_js//js/private/worker:worker.js",
-            ],
+            ]
+
+        js_binary(
+            name = webpack_worker_binary_target,
+            data = worker_data,
             copy_data_to_bin = False,
             entry_point = "_{}_webpack_worker.js".format(name),
             visibility = ["//visibility:public"],
@@ -401,6 +438,7 @@ def webpack_bundle(
 
     _webpack_bundle(
         name = name,
+        bundler = bundler,
         webpack_configs = webpack_configs,
         srcs = srcs,
         args = args,

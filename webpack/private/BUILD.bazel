@@ -7,10 +7,17 @@ bzl_library(
 )
 
 bzl_library(
+    name = "rspack_binary",
+    srcs = ["rspack_binary.bzl"],
+    visibility = ["//webpack:__subpackages__"],
+)
+
+bzl_library(
     name = "webpack_bundle",
     srcs = ["webpack_bundle.bzl"],
     visibility = ["//webpack:__subpackages__"],
     deps = [
+        ":rspack_binary",
         ":webpack_binary",
         ":webpack_create_configs",
         "@aspect_bazel_lib//lib:copy_file",
