@@ -4,6 +4,10 @@ bzl_library(
     name = "webpack_binary",
     srcs = ["webpack_binary.bzl"],
     visibility = ["//webpack:__subpackages__"],
+    deps = [
+        "@aspect_bazel_lib//lib:directory_path",
+        "@aspect_rules_js//js:defs",
+    ],
 )
 
 bzl_library(
@@ -15,6 +19,7 @@ bzl_library(
         ":webpack_create_configs",
         "@aspect_bazel_lib//lib:copy_file",
         "@aspect_bazel_lib//lib:copy_to_bin",
+        "@aspect_bazel_lib//lib:expand_make_vars",
         "@aspect_rules_js//js:libs",
         "@aspect_rules_js//js:providers",
     ],
