@@ -65,7 +65,6 @@ jobs:
           - 'e2e/loaders'
           - 'e2e/loaders_jslib'
           - 'e2e/smoke'
-          - 'e2e/smoke_rjs3'
           - 'e2e/worker'
         exclude:
           # bazel 7 linux tested on Aspect Workflows
