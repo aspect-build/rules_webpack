@@ -30,7 +30,6 @@ jobs:
           m=${v::1}
           a=(
             "major:$m, version:\"$v\""
-            "major:6, version:\"6.5.0\""
           )
           printf -v j '{%s},' "${a[@]}"
           echo "res=[${j%,}]" | tee -a $GITHUB_OUTPUT
@@ -60,43 +59,19 @@ jobs:
       fail-fast: false
       matrix:
         bazel-version: ${{ fromJSON(needs.matrix-prep.outputs.bazel-version) }}
-        bzlmod: [1, 0]
         os: ${{ fromJSON(needs.matrix-prep.outputs.os) }}
         folder:
           - '.'
           - 'e2e/loaders'
+          - 'e2e/loaders_jslib'
           - 'e2e/smoke'
           - 'e2e/smoke_rjs3'
           - 'e2e/worker'
         exclude:
-          # Don't test MacOS and Windows against secondary bazel version to minimize minutes (billed at 10X and 2X respectively)
-          # https://docs.github.com/en/billing/managing-billing-for-github-actions/about-billing-for-github-actions#included-storage-and-minutes
-          - os: macos
-            bazel-version:
-              major: 6
-          - os: windows
-            bazel-version:
-              major: 6
-          # Root repository no longer tests non-bzlmod/WORKSPACE
-          - folder: .
-            bzlmod: 0
-          # TODO
-          - folder: e2e/loaders
-            bzlmod: 1
-          # TODO
-          - folder: e2e/worker
-            bzlmod: 1
-          # rules_js v3 is bzlmod-only and requires bazel 7+
-          - folder: e2e/smoke_rjs3
-            bzlmod: 0
-          - folder: e2e/smoke_rjs3
-            bazel-version:
-              major: 6
           # bazel 7 linux tested on Aspect Workflows
           - os: ubuntu
             bazel-version:
               major: 7
-            bzlmod: 1
 
     steps:
       - uses: actions/checkout@v4
@@ -108,8 +83,8 @@ jobs:
             ~/.cache/bazel-disk-cache
             ~/.cache/bazel-repository-cache
             ~/.cache/xdg-cache
-          key: bazel-cache-${{ matrix.bazel-version.version }}-${{ matrix.bzlmod }}-${{ matrix.os }}-${{ matrix.folder }}-${{ hashFiles('.bazelrc', '.bazelversion', '**/BUILD', '**/BUILD.bazel', '**/*.bzl', 'WORKSPACE', 'WORKSPACE.bazel', 'WORKSPACE.bzlmod', 'MODULE.bazel') }}
-          restore-keys: bazel-cache-${{ matrix.bazel-version.version }}-${{ matrix.bzlmod }}-${{ matrix.os }}-${{ matrix.folder }}-
+          key: bazel-cache-${{ matrix.bazel-version.version }}-${{ matrix.os }}-${{ matrix.folder }}-${{ hashFiles('.bazelrc', '.bazelversion', '**/BUILD', '**/BUILD.bazel', '**/*.bzl', 'MODULE.bazel') }}
+          restore-keys: bazel-cache-${{ matrix.bazel-version.version }}-${{ matrix.os }}-${{ matrix.folder }}-
 
       - name: Configure Bazel version
         working-directory: ${{ matrix.folder }}
@@ -131,7 +106,6 @@ jobs:
             test \
             --test_tag_filters=-skip-on-bazel${{ matrix.bazel-version.major }} \
             --build_tag_filters=-skip-on-bazel${{ matrix.bazel-version.major }} \
-            --enable_bzlmod=${{ matrix.bzlmod }} \
             //...
 
       - name: run ./test.sh
