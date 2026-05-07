@@ -15,3 +15,20 @@ webpack_devserver(
     node_modules = "//:node_modules",
     webpack_config = ":webpack.config.js",
 )
+
+webpack_devserver(
+    name = "rspack-devserver",
+    bundler = "rspack",
+    chdir = package_name(),
+    data = [
+        "helper.js",
+        "index.html",
+        "//webpack/tests:node_modules/html-webpack-plugin",
+        "//webpack/tests:node_modules/js-yaml",
+    ],
+    entry_points = {
+        "app.js": "multi",
+    },
+    node_modules = "//:node_modules",
+    webpack_config = ":rspack.config.js",
+)
