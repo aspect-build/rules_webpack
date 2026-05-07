@@ -1,2 +1,5 @@
+# Ensure that all text files have Unix-style LF line endings, even on Windows.
+# This way, the Webpack output will be consistent across platforms.
+* text=auto eol=lf
 docs/*_*.md linguist-generated=true
 pnpm-lock.yaml linguist-generated=true
