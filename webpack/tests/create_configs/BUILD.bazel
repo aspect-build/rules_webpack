@@ -1,4 +1,4 @@
-load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
+load("@bazel_lib//lib:write_source_files.bzl", "write_source_files")
 load("//webpack/private:webpack_create_configs.bzl", "webpack_create_configs")
 
 webpack_create_configs(
