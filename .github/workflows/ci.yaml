@@ -103,6 +103,7 @@ jobs:
             --bazelrc=${GITHUB_WORKSPACE//\\/\/}/tools/preset.bazelrc \
             --bazelrc=${GITHUB_WORKSPACE//\\/\/}/.github/workflows/ci.bazelrc \
             test \
+            -k --verbose_failures \
             --test_tag_filters=-skip-on-bazel${{ matrix.bazel-version.major }} \
             --build_tag_filters=-skip-on-bazel${{ matrix.bazel-version.major }} \
             //...
