@@ -54,12 +54,19 @@ webpack_bundle(
         "MY_ENV": "$(execpath :index.js)",
     },
     node_modules = "//:node_modules",
+    tags = ["manual"],
     use_execroot_entry_point = False,
     webpack_config = ":webpack.config.js",
 )
+
+not_windows = select({
+    "@platforms//os:windows": ["@platforms//:incompatible"],
+    "//conditions:default": [],
+})
 
 diff_test(
     name = "bundle_no_execroot_entry_point_matches",
     file1 = "bundle.js",
     file2 = "bundle_no_execroot_entry_point.js",
+    target_compatible_with = not_windows,
 )

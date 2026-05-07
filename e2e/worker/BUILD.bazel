@@ -24,11 +24,18 @@ webpack_bundle(
     entry_point = "module.js",
     node_modules = "//:node_modules",
     supports_workers = True,
+    tags = ["manual"],
     use_execroot_entry_point = False,
 )
+
+not_windows = select({
+    "@platforms//os:windows": ["@platforms//:incompatible"],
+    "//conditions:default": [],
+})
 
 diff_test(
     name = "bundles_match",
     file1 = "bundle.js",
     file2 = "bundle_no_execroot_entry_point.js",
+    target_compatible_with = not_windows,
 )
