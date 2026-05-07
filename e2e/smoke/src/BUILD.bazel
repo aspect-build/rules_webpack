@@ -15,10 +15,23 @@ webpack_bundle(
     node_modules = "//v5:node_modules",
 )
 
+# Rspack resolves module paths to absolute sandbox locations in dev mode,
+# producing machine-specific output. A production-mode config gives stable
+# minified output suitable for write_source_files comparison.
+webpack_bundle(
+    name = "bundle-rspack",
+    srcs = ["module.js"],
+    bundler = "rspack",
+    entry_point = "index.js",
+    node_modules = "//rspack:node_modules",
+    webpack_config = ":rspack.config.js",
+)
+
 write_source_files(
     name = "bundles",
     files = {
         "expected-v4.js_": ":bundle-v4.js",
         "expected-v5.js_": ":bundle-v5.js",
+        "expected-rspack.js_": ":bundle-rspack.js",
     },
 )
