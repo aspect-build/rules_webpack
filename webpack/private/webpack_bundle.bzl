@@ -109,6 +109,9 @@ def _impl(ctx):
 
     env = {
         "BAZEL_BINDIR": ctx.bin_dir.path,
+        # Signal to the launcher script that we have copied the necessary
+        # inputs to the bin directory.
+        "JS_BINARY__COPY_DATA_TO_BIN": "1",
     }
     if ctx.attr.use_execroot_entry_point:
         env["JS_BINARY__USE_EXECROOT_ENTRY_POINT"] = "1"
@@ -136,7 +139,6 @@ def _impl(ctx):
 
         path_to_execroot = ("/".join([".."] * len(ctx.label.package.split("/"))) if ctx.label.package else ".") + "/"
         if ctx.attr.use_execroot_entry_point:
-            env["JS_BINARY__ALLOW_EXECROOT_ENTRY_POINT_WITH_NO_COPY_DATA_TO_BIN"] = "1"
             env["RULES_JS_WORKER"] = path_to_execroot + "../../../" + ctx.file._worker_js.path
         else:
             env["RULES_JS_WORKER"] = path_to_execroot + ctx.file._worker_js.short_path
