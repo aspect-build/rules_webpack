@@ -9,6 +9,5 @@ bzl_library(
     deps = [
         "//webpack/private:webpack_bundle",
         "//webpack/private:webpack_devserver",
-        "@bazel_tools//tools/build_defs/repo:cache.bzl",
     ],
 )

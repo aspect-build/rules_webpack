@@ -13,6 +13,12 @@ _Need help?_ This ruleset has support provided by https://aspect.build/services.
 
 ## Installation
 
-From the release you wish to use:
-<https://github.com/aspect-build/rules_webpack/releases>
-copy the WORKSPACE snippet into your `WORKSPACE` file.
+Add to your `MODULE.bazel`:
+
+```starlark
+bazel_dep(name = "aspect_rules_webpack", version = "x.y.z")
+```
+
+See the [Bazel Central
+Registry](https://registry.bazel.build/modules/aspect_rules_webpack) for the latest
+version and the full setup snippet.
