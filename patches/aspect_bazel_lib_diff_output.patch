@@ -1,0 +1,20 @@
+diff --git a/lib/private/diff_test_tmpl.bat b/lib/private/diff_test_tmpl.bat
+index 6341a26..4304814 100644
+--- a/lib/private/diff_test_tmpl.bat
++++ b/lib/private/diff_test_tmpl.bat
+@@ -57,6 +57,7 @@ for /f "delims=" %%F in (
+     fc.exe "!RF1!\\%%~F" "!RF2!\\%%~F" 2>NUL 1>NUL
+     if !ERRORLEVEL! neq 0 (
+       if !ERRORLEVEL! equ 1 (
++        fc.exe "!RF1!\\%%~F" "!RF2!\\%%~F" 1>&2
+         echo>&2 FAIL: files "!RF1!\\%%~F" and "!RF2!\\%%~F" differ.
+         set RF1=!RF1!\\%%~F
+         set RF2=!RF2!\\%%~F
+@@ -84,6 +85,7 @@ fc.exe "!RF1!" "!RF2!" 2>NUL 1>NUL
+ set result=%ERRORLEVEL%
+ if !result! neq 0 (
+   if !result! equ 1 (
++    fc.exe "!RF1!" "!RF2!" 1>&2
+     echo>&2 FAIL: files "!RF1!" and "!RF2!" differ.
+     goto :fail
+   ) else (
