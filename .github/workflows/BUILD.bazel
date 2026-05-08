@@ -2,4 +2,8 @@ load("@bazelrc-preset.bzl", "bazelrc_preset")
 
 bazelrc_preset(
     name = "bazel7",
+    tags = [
+        "skip-on-bazel8",
+        "skip-on-bazel9",
+    ],
 )

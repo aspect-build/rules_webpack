@@ -35,6 +35,26 @@ tasks:
     - checkout:
           update_strategy: rebase
     - test:
+          name: 'Test (Bazel 7)'
+          env:
+              USE_BAZEL_VERSION: 7.x
+          bazel:
+              flags:
+                  - --test_tag_filters=-skip-on-bazel7
+    - test:
+          name: 'Test (Bazel 8)'
+          env:
+              USE_BAZEL_VERSION: 8.x
+          bazel:
+              flags:
+                  - --test_tag_filters=-skip-on-bazel8
+    - test:
+          name: 'Test (Bazel 9)'
+          env:
+              USE_BAZEL_VERSION: 9.x
+          bazel:
+              flags:
+                  - --test_tag_filters=-skip-on-bazel9
     - buildifier:
           queue: aspect-medium
     - finalization:
