@@ -10,25 +10,25 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 138:
+/***/ 44
 /*!**********************!*\
   !*** ./src/index.js ***!
   \**********************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _module__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./module */ 852);\n\n\nconsole.log(_module__WEBPACK_IMPORTED_MODULE_0__.version)\n\n\n//# sourceURL=webpack:///./src/index.js?");
+eval("{__webpack_require__.r(__webpack_exports__);\n/* harmony import */ var _module__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./module */ 338);\n\n\nconsole.log(_module__WEBPACK_IMPORTED_MODULE_0__.version)\n\n\n//# sourceURL=webpack:///./src/index.js?\n}");
 
-/***/ }),
+/***/ },
 
-/***/ 852:
+/***/ 338
 /*!***********************!*\
   !*** ./src/module.js ***!
   \***********************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
 
-eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   \"version\": () => (/* binding */ version)\n/* harmony export */ });\nconst version = '0.0.0'\n\n\n//# sourceURL=webpack:///./src/module.js?");
+eval("{__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpack_require__.d(__webpack_exports__, {\n/* harmony export */   version: () => (/* binding */ version)\n/* harmony export */ });\nconst version = '0.0.0'\n\n\n//# sourceURL=webpack:///./src/module.js?\n}");
 
-/***/ })
+/***/ }
 
 /******/ 	});
 /************************************************************************/
@@ -50,6 +50,12 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
+/******/ 		if (!(moduleId in __webpack_modules__)) {
+/******/ 			delete __webpack_module_cache__[moduleId];
+/******/ 			var e = new Error("Cannot find module '" + moduleId + "'");
+/******/ 			e.code = 'MODULE_NOT_FOUND';
+/******/ 			throw e;
+/******/ 		}
 /******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
 /******/ 	
 /******/ 		// Return the exports of the module
@@ -90,7 +96,7 @@ eval("__webpack_require__.r(__webpack_exports__);\n/* harmony export */ __webpac
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module can't be inlined because the eval devtool is used.
-/******/ 	var __webpack_exports__ = __webpack_require__(138);
+/******/ 	var __webpack_exports__ = __webpack_require__(44);
 /******/ 	
 /******/ })()
 ;

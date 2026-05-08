@@ -9,15 +9,15 @@
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 662:
+/***/ 93
 /*!*******************!*\
   !*** ./module.js ***!
   \*******************/
-/***/ (() => {
+() {
 
-eval("console.log(\"Mon Jun 13 17:51:29 +03 2022\")\n\n\n//# sourceURL=webpack:///./module.js?");
+eval("{console.log(\"Mon Jun 13 17:51:29 +03 2022\")\n\n\n//# sourceURL=webpack:///./module.js?\n}");
 
-/***/ })
+/***/ }
 
 /******/ 	});
 /************************************************************************/
@@ -26,7 +26,7 @@ eval("console.log(\"Mon Jun 13 17:51:29 +03 2022\")\n\n\n//# sourceURL=webpack:/
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module can't be inlined because the eval devtool is used.
 /******/ 	var __webpack_exports__ = {};
-/******/ 	__webpack_modules__[662]();
+/******/ 	__webpack_modules__[93]();
 /******/ 	
 /******/ })()
 ;

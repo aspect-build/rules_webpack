@@ -1,9 +1,9 @@
 {
   "private": true,
   "devDependencies": {
-    "webpack": "5.76.2",
-    "webpack-cli": "5.0.1",
-    "webpack-dev-server": "4.13.1"
+    "webpack": "5.106.2",
+    "webpack-cli": "5.1.4",
+    "webpack-dev-server": "5.2.3"
   },
   "packageManager": "pnpm@9.0.0",
   "pnpm": {
