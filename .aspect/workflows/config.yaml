@@ -48,6 +48,8 @@ tasks:
               USE_BAZEL_VERSION: '9.x'
     - buildifier:
           queue: aspect-medium
+    - gazelle:
+          queue: aspect-small
     - finalization:
           queue: aspect-small
 notifications:

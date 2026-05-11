@@ -1,19 +1,15 @@
-load("@bazel_gazelle//:def.bzl", "gazelle", "gazelle_binary")
+load("@aspect_gazelle_prebuilt//:def.bzl", "aspect_gazelle")
 load("@buildifier_prebuilt//:rules.bzl", "buildifier")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 
 npm_link_all_packages(name = "node_modules")
 
-gazelle_binary(
-    name = "gazelle_bin",
-    languages = ["@bazel_skylib_gazelle_plugin//bzl"],
-)
-
 # gazelle:exclude @bazel/*
 
-gazelle(
+aspect_gazelle(
     name = "gazelle",
-    gazelle = "gazelle_bin",
+    languages = ["starlark"],
+    with_check = True,
 )
 
 buildifier(
