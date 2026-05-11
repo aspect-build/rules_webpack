@@ -1,9 +1,9 @@
 {
   "dependencies": {
-    "html-webpack-plugin": "5.5.0",
-    "js-yaml": "4.1.0",
-    "sass-loader": "13.1.0",
-    "sass": "1.55.0"
+    "html-webpack-plugin": "5.6.7",
+    "js-yaml": "4.1.1",
+    "sass-loader": "16.0.8",
+    "sass": "1.99.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": []
