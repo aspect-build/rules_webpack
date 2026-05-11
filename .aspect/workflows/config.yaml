@@ -5,56 +5,47 @@ workspaces:
         label: rules_webpack
     e2e/loaders:
         icon: bazel
-        tasks:
+        tasks: &e2e_tasks
             - test:
                   queue: aspect-medium
             - buildifier:
                   without: true
     e2e/loaders_jslib:
         icon: bazel
-        tasks:
-            - test:
-                  queue: aspect-medium
-            - buildifier:
-                  without: true
+        tasks: *e2e_tasks
     e2e/smoke:
         icon: bazel
-        tasks:
-            - test:
-                  queue: aspect-medium
-            - buildifier:
-                  without: true
+        tasks: *e2e_tasks
     e2e/worker:
         icon: bazel
-        tasks:
-            - test:
-                  queue: aspect-medium
-            - buildifier:
-                  without: true
+        tasks: *e2e_tasks
+bazel:
+    flags:
+        - --config=ci
 tasks:
     - checkout:
           update_strategy: rebase
     - test:
-          name: 'Test (Bazel 7)'
-          env:
-              USE_BAZEL_VERSION: 7.x
+          name: Bazel 7
+          id: bazel-7
           bazel:
-              flags:
-                  - --test_tag_filters=-skip-on-bazel7
+              flags: ['--test_tag_filters=-skip-on-bazel7']
+          env:
+              USE_BAZEL_VERSION: '7.x'
     - test:
-          name: 'Test (Bazel 8)'
-          env:
-              USE_BAZEL_VERSION: 8.x
+          name: Bazel 8
+          id: bazel-8
           bazel:
-              flags:
-                  - --test_tag_filters=-skip-on-bazel8
+              flags: ['--test_tag_filters=-skip-on-bazel8']
+          env:
+              USE_BAZEL_VERSION: '8.x'
     - test:
-          name: 'Test (Bazel 9)'
-          env:
-              USE_BAZEL_VERSION: 9.x
+          name: Bazel 9
+          id: bazel-9
           bazel:
-              flags:
-                  - --test_tag_filters=-skip-on-bazel9
+              flags: ['--test_tag_filters=-skip-on-bazel9']
+          env:
+              USE_BAZEL_VERSION: '9.x'
     - buildifier:
           queue: aspect-medium
     - finalization:
