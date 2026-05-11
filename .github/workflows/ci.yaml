@@ -18,97 +18,53 @@ concurrency:
   cancel-in-progress: ${{ github.ref_name != 'main' }}
 
 jobs:
-  # Prepares dynamic test matrix values
-  matrix-prep:
+  semantic-pull-request:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - id: bazel-version
-        name: Prepare 'bazel-version' matrix axis
-        run: |
-          v=$(head -n 1 .bazelversion)
-          m=${v::1}
-          a=(
-            "major:$m, version:\"$v\""
-          )
-          printf -v j '{%s},' "${a[@]}"
-          echo "res=[${j%,}]" | tee -a $GITHUB_OUTPUT
-      - id: os
-        name: Prepare 'os' matrix axis
-        # Only run MacOS and Windows on main branch (not PRs) to minimize minutes (billed at 10X and 2X respectively)
-        # https://docs.github.com/en/billing/managing-billing-for-github-actions/about-billing-for-github-actions#included-storage-and-minutes
-        run: |
-          a=( ubuntu )
-          if [[ "${{ github.ref_name }}" == "main" ]] || [[ "${{ github.head_ref }}" == *"macos"* ]]; then
-            a+=( macos )
-          fi
-          if [[ "${{ github.ref_name }}" == "main" ]] || [[ "${{ github.head_ref }}" == *"windows"* ]]; then
-            a+=( windows )
-          fi
-          printf -v j '"%s",' "${a[@]}"
-          echo "res=[${j%,}]" | tee -a $GITHUB_OUTPUT
-    outputs:
-      bazel-version: ${{ steps.bazel-version.outputs.res }}
-      os: ${{ steps.os.outputs.res }}
+      - uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
 
-  test:
-    runs-on: ${{ matrix.os }}-latest
-    needs:
-      - matrix-prep
+  # Mac/Windows smoke tests - only e2e/smoke
+  # Only run on main branch (not PRs) to minimize minutes (billed at 10X and 2X respectively)
+  # https://docs.github.com/en/billing/managing-billing-for-github-actions/about-billing-for-github-actions#included-storage-and-minutes
+  smoke:
+    if: github.ref_name == 'main' || contains(github.head_ref, 'macos') || contains(github.head_ref, 'windows')
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: e2e/smoke
     strategy:
       fail-fast: false
       matrix:
-        bazel-version: ${{ fromJSON(needs.matrix-prep.outputs.bazel-version) }}
-        os: ${{ fromJSON(needs.matrix-prep.outputs.os) }}
-        folder:
-          - '.'
-          - 'e2e/loaders'
-          - 'e2e/loaders_jslib'
-          - 'e2e/smoke'
-          - 'e2e/worker'
-        exclude:
-          # bazel 7 linux tested on Aspect Workflows
-          - os: ubuntu
-            bazel-version:
-              major: 7
-
+        os: [macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v4
 
-      - name: Mount bazel caches
-        uses: actions/cache@v4
+      - uses: bazel-contrib/setup-bazel@0.18.0
         with:
-          path: |
-            ~/.cache/bazel-disk-cache
-            ~/.cache/bazel-repository-cache
-            ~/.cache/xdg-cache
-          key: bazel-cache-${{ matrix.bazel-version.version }}-${{ matrix.os }}-${{ matrix.folder }}-${{ hashFiles('.bazelrc', '.bazelversion', '**/BUILD', '**/BUILD.bazel', '**/*.bzl', 'MODULE.bazel') }}
-          restore-keys: bazel-cache-${{ matrix.bazel-version.version }}-${{ matrix.os }}-${{ matrix.folder }}-
-
-      - name: Configure Bazel version
-        working-directory: ${{ matrix.folder }}
-        shell: bash
-        run: |
-          # Overwrite the .bazelversion instead of using USE_BAZEL_VERSION so that Bazelisk
-          # still bootstraps Aspect CLI from configuration in .bazeliskrc. Aspect CLI will
-          # then use .bazelversion to determine which Bazel version to use.
-          echo "${{ matrix.bazel-version.version }}" > .bazelversion
+          bazelisk-cache: true
+          disk-cache: ${{ matrix.os }}-smoke
+          repository-cache: true
 
       - name: bazel test //...
-        working-directory: ${{ matrix.folder }}
         shell: bash
         run: |
-          bazel \
-            --bazelrc=${GITHUB_WORKSPACE//\\/\/}/.github/workflows/bazel${{ matrix.bazel-version.major }}.bazelrc \
-            --bazelrc=${GITHUB_WORKSPACE//\\/\/}/tools/preset.bazelrc \
-            --bazelrc=${GITHUB_WORKSPACE//\\/\/}/.github/workflows/ci.bazelrc \
-            test \
-            --test_tag_filters=-skip-on-bazel${{ matrix.bazel-version.major }} \
-            --build_tag_filters=-skip-on-bazel${{ matrix.bazel-version.major }} \
+          bazel test \
+            --test_tag_filters=-skip-on-bazel7 \
+            --build_tag_filters=-skip-on-bazel7 \
             //...
 
-      - name: run ./test.sh
-        working-directory: ${{ matrix.folder }}
-        # hashFiles returns an empty string if test.sh is absent
-        if: ${{ hashFiles(format('{0}/test.sh', matrix.folder)) != '' }}
-        run: ./test.sh
+  # Provides a stable job name for branch protection rules, gating on all matrix jobs above.
+  conclusion:
+    needs: [smoke]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - run: |
+          if [[ "${{ needs.smoke.result }}" == "success" || "${{ needs.smoke.result }}" == "skipped" ]]; then
+            exit 0
+          else
+            exit 1
+          fi
