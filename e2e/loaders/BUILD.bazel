@@ -20,7 +20,6 @@ webpack_bundle(
     output_dir = True,
     webpack_config = ":webpack.css.cjs",
     deps = [
-        ":node_modules/ajv",
         ":node_modules/css-loader",
         ":node_modules/mini-css-extract-plugin",
     ],
@@ -36,7 +35,6 @@ webpack_bundle(
     output_dir = True,
     webpack_config = ":webpack.css.cjs",
     deps = [
-        ":node_modules/ajv",
         ":node_modules/css-loader",
         ":node_modules/mini-css-extract-plugin",
     ],
@@ -83,7 +81,6 @@ webpack_bundle(
     supports_workers = True,  # Required to reproduce https://github.com/aspect-build/rules_webpack/issues/126
     webpack_config = ":webpack.html.cjs",
     deps = [
-        ":node_modules/ajv",
         ":node_modules/css-loader",
         ":node_modules/html-webpack-plugin",
         ":node_modules/mini-css-extract-plugin",
