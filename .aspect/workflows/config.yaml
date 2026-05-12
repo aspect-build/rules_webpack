@@ -10,6 +10,8 @@ workspaces:
                   queue: aspect-medium
             - buildifier:
                   without: true
+            - gazelle:
+                  without: true
     e2e/loaders_jslib:
         icon: bazel
         tasks: *e2e_tasks
