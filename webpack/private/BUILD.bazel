@@ -50,6 +50,8 @@ bzl_library(
 )
 
 exports_files([
+    "bundler_worker.js",
+    "rspack_worker.js",
     "webpack.config.js.tmpl",
     "webpack_worker.js",
 ])

@@ -407,10 +407,17 @@ def webpack_bundle(
     webpack_worker_binary_target = None
     if supports_workers:
         webpack_worker_binary_target = "_{}_webpack_worker_binary".format(name)
+
+        worker_entry_src = "@aspect_rules_webpack//webpack/private:rspack_worker.js" if bundler == "rspack" else "@aspect_rules_webpack//webpack/private:webpack_worker.js"
         copy_file(
             name = "_{}_copy_webpack_worker".format(name),
-            src = "@aspect_rules_webpack//webpack/private:webpack_worker.js",
+            src = worker_entry_src,
             out = "_{}_webpack_worker.js".format(name),
+        )
+        copy_file(
+            name = "_{}_copy_bundler_worker".format(name),
+            src = "@aspect_rules_webpack//webpack/private:bundler_worker.js",
+            out = "_{}_bundler_worker.js".format(name),
         )
 
         worker_data = []
@@ -430,7 +437,7 @@ def webpack_bundle(
 
         js_binary(
             name = webpack_worker_binary_target,
-            data = worker_data,
+            data = worker_data + ["_{}_bundler_worker.js".format(name)],
             copy_data_to_bin = False,
             entry_point = "_{}_webpack_worker.js".format(name),
             visibility = ["//visibility:public"],
