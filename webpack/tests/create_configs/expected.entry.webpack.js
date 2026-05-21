@@ -27,12 +27,18 @@ module.exports = function () {
     uniqueName: process.env.BAZEL_WORKSPACE,
   }
 
+  // Set by the Bazel rule at action execution time so the target platform's
+  // compilation mode is reflected. Defined here (not as CLI flags) so that
+  // user-provided configs merged after this one can override them.
+  const mode = process.env.WEBPACK_MODE
+  const devtool = process.env.WEBPACK_DEVTOOL
+
   return {
     infrastructureLogging,
     optimization,
     output,
+    ...(mode ? {mode} : {}),
+    ...(devtool ? {devtool} : {}),
     entry: {"entry":"./webpack/tests/create_configs/entry.js"},
-    devtool: 'eval',
-    mode: 'development',
   }
 }

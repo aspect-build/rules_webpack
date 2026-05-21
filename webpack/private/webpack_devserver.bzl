@@ -109,9 +109,6 @@ def webpack_devserver(
         entry_point = entry_point,
         entry_points = entry_points,
         webpack_config = webpack_config,
-        # We will set the mode via the --mode flag below
-        configure_mode = False,
-        configure_devtool = configure_devtool,
         chdir = chdir,
         entry_points_mandatory = False,  # devserver rule doesn't have outputs so entry points are not needed to predict output files
     )

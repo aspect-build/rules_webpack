@@ -58,6 +58,8 @@ _attrs = {
     "use_execroot_entry_point": attr.bool(
         default = True,
     ),
+    "configure_mode": attr.bool(default = True),
+    "configure_devtool": attr.bool(default = True),
     "_worker_js": attr.label(
         allow_single_file = True,
         default = "@aspect_rules_js//js/private/worker:worker.js",
@@ -120,6 +122,15 @@ def _impl(ctx):
             expand_variables(ctx, exp, attribute_name = "env")
             for exp in expand_locations(ctx, value, entry_points_srcs + ctx.attr.srcs + ctx.attr.deps + ctx.attr.data).split(" ")
         ])
+
+    compilation_mode = ctx.var["COMPILATION_MODE"]
+    if ctx.attr.configure_mode:
+        env["WEBPACK_MODE"] = "production" if compilation_mode == "opt" else "development"
+    if ctx.attr.configure_devtool:
+        if compilation_mode == "fastbuild":
+            env["WEBPACK_DEVTOOL"] = "eval"
+        elif compilation_mode == "dbg":
+            env["WEBPACK_DEVTOOL"] = "eval-source-map"
 
     # Add user specified arguments after rule supplied arguments
     args.add_all(ctx.attr.args)
@@ -372,8 +383,6 @@ def webpack_bundle(
         entry_point = entry_point,
         entry_points = entry_points,
         webpack_config = webpack_config,
-        configure_mode = configure_mode,
-        configure_devtool = configure_devtool,
         chdir = chdir,
         entry_points_mandatory = not output_dir,
     )
@@ -410,6 +419,8 @@ def webpack_bundle(
         env = env,
         output_dir = output_dir,
         entry_points = {entry_point: name} if entry_point else entry_points,
+        configure_mode = configure_mode,
+        configure_devtool = configure_devtool,
         webpack_exec_cfg = webpack_binary_target,
         webpack_target_cfg = webpack_binary_target,
         webpack_worker_exec_cfg = webpack_worker_binary_target,
