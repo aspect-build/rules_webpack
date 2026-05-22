@@ -129,12 +129,19 @@ def webpack_devserver(
         additional_packages = ["webpack-cli", "webpack-dev-server"],
     )
 
+    final_env = dict(env)
+    if configure_mode:
+        final_env["WEBPACK_MODE"] = mode
+    if configure_devtool:
+        # Devservers run in development mode; "eval" matches the fastbuild devtool.
+        final_env["WEBPACK_DEVTOOL"] = "eval"
+
     js_run_devserver(
         name = name,
         tool = webpack_binary_target,
         args = ["serve"] + config_args + (["--mode", mode] if configure_mode else []) + args,
         data = data + webpack_configs + ([entry_point] if entry_point else []) + entry_points.keys(),
         chdir = chdir,
-        env = env,
+        env = final_env,
         **kwargs
     )
