@@ -91,7 +91,7 @@ def webpack_devserver(
 
             Subject to `$(location)` and make variable expansion.
 
-        mode: The mode to pass to `--mode`.
+        mode: The mode to set in the generated base config.
 
         **kwargs: Additional arguments. See [js_run_devserver](https://github.com/aspect-build/rules_js/blob/main/docs/js_run_devserver.md).
     """
