@@ -11,20 +11,20 @@ webpack_devserver(
 
 with_compilation_mode(
     name = "devserver_fastbuild",
-    target = ":devserver",
     compilation_mode = "fastbuild",
+    target = ":devserver",
 )
 
 with_compilation_mode(
     name = "devserver_dbg",
-    target = ":devserver",
     compilation_mode = "dbg",
+    target = ":devserver",
 )
 
 with_compilation_mode(
     name = "devserver_opt",
-    target = ":devserver",
     compilation_mode = "opt",
+    target = ":devserver",
 )
 
 sh_test(
