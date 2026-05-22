@@ -1,6 +1,7 @@
 """Transition rule for testing under specific Bazel compilation modes."""
 
 def _compilation_mode_impl(settings, attr):
+    # buildifier: disable=unused-variable
     _ignore = (settings)
     return {"//command_line_option:compilation_mode": attr.compilation_mode}
 
