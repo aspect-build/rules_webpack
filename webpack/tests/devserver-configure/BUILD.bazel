@@ -1,3 +1,4 @@
+load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//webpack:defs.bzl", "webpack_devserver")
 
 webpack_devserver(
