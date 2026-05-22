@@ -1,3 +1,4 @@
+load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//webpack:defs.bzl", "webpack_devserver")
 load(":transitions.bzl", "with_compilation_mode")
@@ -55,4 +56,10 @@ sh_test(
         "unset",
     ],
     data = [":devserver_opt"],
+)
+
+bzl_library(
+    name = "transitions",
+    srcs = ["transitions.bzl"],
+    visibility = ["//visibility:public"],
 )
