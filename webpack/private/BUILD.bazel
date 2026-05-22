@@ -3,12 +3,14 @@ load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 config_setting(
     name = "compilation_mode_dbg",
     values = {"compilation_mode": "dbg"},
+    # Public for macro visibility only--do not use directly
     visibility = ["//visibility:public"],
 )
 
 config_setting(
     name = "compilation_mode_opt",
     values = {"compilation_mode": "opt"},
+    # Public for macro visibility only--do not use directly
     visibility = ["//visibility:public"],
 )
 
