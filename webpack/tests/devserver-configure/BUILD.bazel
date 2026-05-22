@@ -1,5 +1,6 @@
 load("@rules_shell//shell:sh_test.bzl", "sh_test")
 load("//webpack:defs.bzl", "webpack_devserver")
+load(":transitions.bzl", "with_compilation_mode")
 
 webpack_devserver(
     name = "devserver",
@@ -8,9 +9,50 @@ webpack_devserver(
     node_modules = "//:node_modules",
 )
 
+with_compilation_mode(
+    name = "devserver_fastbuild",
+    target = ":devserver",
+    compilation_mode = "fastbuild",
+)
+
+with_compilation_mode(
+    name = "devserver_dbg",
+    target = ":devserver",
+    compilation_mode = "dbg",
+)
+
+with_compilation_mode(
+    name = "devserver_opt",
+    target = ":devserver",
+    compilation_mode = "opt",
+)
+
 sh_test(
-    name = "test",
+    name = "test_fastbuild",
     srcs = ["configure_mode_test.sh"],
-    args = ["$(rootpath :devserver)"],
-    data = [":devserver"],
+    args = [
+        "$(rootpath :devserver_fastbuild)",
+        "eval",
+    ],
+    data = [":devserver_fastbuild"],
+)
+
+sh_test(
+    name = "test_dbg",
+    srcs = ["configure_mode_test.sh"],
+    args = [
+        "$(rootpath :devserver_dbg)",
+        "eval-source-map",
+    ],
+    data = [":devserver_dbg"],
+)
+
+sh_test(
+    name = "test_opt",
+    srcs = ["configure_mode_test.sh"],
+    args = [
+        "$(rootpath :devserver_opt)",
+        "unset",
+    ],
+    data = [":devserver_opt"],
 )
