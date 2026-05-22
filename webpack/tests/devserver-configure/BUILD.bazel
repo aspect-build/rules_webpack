@@ -1,0 +1,15 @@
+load("//webpack:defs.bzl", "webpack_devserver")
+
+webpack_devserver(
+    name = "devserver",
+    configure_devtool = True,
+    configure_mode = True,
+    node_modules = "//:node_modules",
+)
+
+sh_test(
+    name = "test",
+    srcs = ["configure_mode_test.sh"],
+    args = ["$(rootpath :devserver)"],
+    data = [":devserver"],
+)
