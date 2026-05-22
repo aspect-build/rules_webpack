@@ -132,9 +132,19 @@ def webpack_devserver(
     final_env = dict(env)
     if configure_mode:
         final_env["WEBPACK_MODE"] = mode
+
     if configure_devtool:
-        # Devservers run in development mode; "eval" matches the fastbuild devtool.
-        final_env["WEBPACK_DEVTOOL"] = "eval"
+        env_fastbuild = dict(final_env)
+        env_fastbuild["WEBPACK_DEVTOOL"] = "eval"
+        env_dbg = dict(final_env)
+        env_dbg["WEBPACK_DEVTOOL"] = "eval-source-map"
+        resolved_env = select({
+            "//webpack/private:compilation_mode_dbg": env_dbg,
+            "//webpack/private:compilation_mode_opt": final_env,
+            "//conditions:default": env_fastbuild,
+        })
+    else:
+        resolved_env = final_env
 
     js_run_devserver(
         name = name,
@@ -142,6 +152,6 @@ def webpack_devserver(
         args = ["serve"] + config_args + (["--mode", mode] if configure_mode else []) + args,
         data = data + webpack_configs + ([entry_point] if entry_point else []) + entry_points.keys(),
         chdir = chdir,
-        env = final_env,
+        env = resolved_env,
         **kwargs
     )

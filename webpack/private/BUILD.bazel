@@ -1,5 +1,17 @@
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
 
+config_setting(
+    name = "compilation_mode_dbg",
+    values = {"compilation_mode": "dbg"},
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "compilation_mode_opt",
+    values = {"compilation_mode": "opt"},
+    visibility = ["//visibility:public"],
+)
+
 bzl_library(
     name = "webpack_binary",
     srcs = ["webpack_binary.bzl"],
