@@ -15,12 +15,12 @@ webpack_devserver(
 
 devserver_mode_test(
     name = "test_with_mode",
-    target_under_test = ":devserver_with_mode",
     expect_mode = True,
+    target_under_test = ":devserver_with_mode",
 )
 
 devserver_mode_test(
     name = "test_no_mode",
-    target_under_test = ":devserver_no_mode",
     expect_mode = False,
+    target_under_test = ":devserver_no_mode",
 )
