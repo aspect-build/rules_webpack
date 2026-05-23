@@ -51,13 +51,9 @@ def webpack_devserver(
 
         webpack_config: Webpack configuration file. See https://webpack.js.org/configuration/.
 
-        configure_mode: Configure `mode` in the generated base webpack config.
+        configure_mode: Configure mode by passing the `--mode` flag.
 
-            `mode` is set to `production` if the Bazel compilation mode is `opt` otherwise it is set to `development`.
-
-            The configured value will be overridden if it is set in a supplied `webpack_config`.
-
-            See https://bazel.build/docs/user-manual#compilation-mode for more info on how to configure the compilation mode.
+            The mode will be set to the value of the `mode` argument.
 
         configure_devtool: Configure `devtool` in the generated base webpack config.
 
@@ -113,7 +109,8 @@ def webpack_devserver(
         entry_point = entry_point,
         entry_points = entry_points,
         webpack_config = webpack_config,
-        configure_mode = configure_mode,
+        # We will set the mode via the --mode flag below
+        configure_mode = False,
         configure_devtool = configure_devtool,
         chdir = chdir,
         entry_points_mandatory = False,  # devserver rule doesn't have outputs so entry points are not needed to predict output files
@@ -138,7 +135,7 @@ def webpack_devserver(
     js_run_devserver(
         name = name,
         tool = webpack_binary_target,
-        args = ["serve"] + config_args + ["--mode", mode] + args,
+        args = ["serve"] + config_args + (["--mode", mode] if configure_mode else []) + args,
         data = data + webpack_configs + ([entry_point] if entry_point else []) + entry_points.keys(),
         chdir = chdir,
         env = env,
