@@ -2,9 +2,11 @@
 
 load("@bazel_skylib//lib:unittest.bzl", "analysistest", "asserts")
 
-_RuleArgsInfo = provider(fields = ["args"])
+_RuleArgsInfo = provider("The contents of the args attribute", fields = ["args"])
 
 def _rule_args_aspect_impl(target, ctx):
+    # buildifier: disable=unused-variable
+    _ignore = (target)
     return [_RuleArgsInfo(args = ctx.rule.attr.args)]
 
 _rule_args_aspect = aspect(implementation = _rule_args_aspect_impl)
