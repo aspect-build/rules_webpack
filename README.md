@@ -1,5 +1,9 @@
 # Bazel rules for webpack
 
+> [!NOTE]
+> This repository uses the [Aspect CLI](https://github.com/aspect-build/aspect-cli) for CI and local development.
+> See the [docs](https://docs.aspect.build/cli/overview) and [install instructions](https://docs.aspect.build/cli/install) to get started.
+
 Note this repository is in early development and may still have breaking changes going forward.
 
 Ask in #javascript in slack.bazel.build if you'd like to contribute.
