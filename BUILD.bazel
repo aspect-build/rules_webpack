@@ -1,29 +1,15 @@
-load("@aspect_gazelle_prebuilt//:def.bzl", "aspect_gazelle")
-load("@buildifier_prebuilt//:rules.bzl", "buildifier")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 
 npm_link_all_packages(name = "node_modules")
 
 # gazelle:exclude @bazel/*
 
-aspect_gazelle(
+alias(
     name = "gazelle",
-    languages = ["starlark"],
-    with_check = True,
+    actual = "//tools/gazelle",
 )
 
-buildifier(
+alias(
     name = "buildifier",
-    exclude_patterns = ["./.git/*"],
-    lint_mode = "fix",
-    mode = "fix",
-    tags = ["manual"],  # tag as manual so windows ci does not build it by default
-)
-
-buildifier(
-    name = "buildifier.check",
-    exclude_patterns = ["./.git/*"],
-    lint_mode = "warn",
-    mode = "diff",
-    tags = ["manual"],  # tag as manual so windows ci does not build it by default
+    actual = "//tools/format:buildifier",
 )
