@@ -1,0 +1,2 @@
+(()=>{"use strict";var r={},e={};function o(t){var s=e[t];if(void 0!==s)return s.exports;var n=e[t]={exports:{}};return r[t](n,n.exports,o),n.exports}o.rv=()=>"1.6.4",o.ruid="bundler=rspack@1.6.4",console.log("hmm")})();
+//# sourceMappingURL=rspack-bundle.js.map
