@@ -1,0 +1,26 @@
+load("//webpack:defs.bzl", "webpack_devserver")
+load(":analysis_test.bzl", "devserver_mode_test")
+
+webpack_devserver(
+    name = "devserver_with_mode",
+    configure_mode = True,
+    node_modules = "//:node_modules",
+)
+
+webpack_devserver(
+    name = "devserver_no_mode",
+    configure_mode = False,
+    node_modules = "//:node_modules",
+)
+
+devserver_mode_test(
+    name = "test_with_mode",
+    expect_mode = True,
+    target_under_test = ":devserver_with_mode",
+)
+
+devserver_mode_test(
+    name = "test_no_mode",
+    expect_mode = False,
+    target_under_test = ":devserver_no_mode",
+)
