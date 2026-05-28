@@ -91,7 +91,7 @@ def webpack_devserver(
 
             Subject to `$(location)` and make variable expansion.
 
-        mode: The mode to pass to `--mode`.
+        mode: The mode to set in the generated base config.
 
         **kwargs: Additional arguments. See [js_run_devserver](https://github.com/aspect-build/rules_js/blob/main/docs/js_run_devserver.md).
     """
@@ -109,9 +109,6 @@ def webpack_devserver(
         entry_point = entry_point,
         entry_points = entry_points,
         webpack_config = webpack_config,
-        # We will set the mode via the --mode flag below
-        configure_mode = False,
-        configure_devtool = configure_devtool,
         chdir = chdir,
         entry_points_mandatory = False,  # devserver rule doesn't have outputs so entry points are not needed to predict output files
     )
@@ -132,12 +129,22 @@ def webpack_devserver(
         additional_packages = ["webpack-cli", "webpack-dev-server"],
     )
 
+    updated_env = dict(env)
+    if configure_mode:
+        updated_env["WEBPACK_MODE"] = mode
+
+    final_env = select({
+        "//webpack/private:compilation_mode_dbg": updated_env | {"WEBPACK_DEVTOOL": "eval-source-map"},
+        "//webpack/private:compilation_mode_opt": updated_env,
+        "//conditions:default": updated_env | {"WEBPACK_DEVTOOL": "eval"},
+    }) if configure_devtool else updated_env
+
     js_run_devserver(
         name = name,
         tool = webpack_binary_target,
         args = ["serve"] + config_args + (["--mode", mode] if configure_mode else []) + args,
         data = data + webpack_configs + ([entry_point] if entry_point else []) + entry_points.keys(),
         chdir = chdir,
-        env = env,
+        env = final_env,
         **kwargs
     )

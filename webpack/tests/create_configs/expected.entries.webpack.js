@@ -27,12 +27,17 @@ module.exports = function () {
     uniqueName: process.env.BAZEL_WORKSPACE,
   }
 
+  // Set by the Bazel rule at action execution time so that the target
+  // platform's compilation mode is reflected.
+  const mode = process.env.WEBPACK_MODE
+  const devtool = process.env.WEBPACK_DEVTOOL
+
   return {
     infrastructureLogging,
     optimization,
     output,
+    ...(mode ? {mode} : {}),
+    ...(devtool ? {devtool} : {}),
     entry: {"bar.js":"./webpack/tests/create_configs/bar","foo.js":"./webpack/tests/create_configs/foo"},
-    devtool: 'eval',
-    mode: 'development',
   }
 }

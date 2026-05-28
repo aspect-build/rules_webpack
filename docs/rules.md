@@ -79,7 +79,7 @@ ibazel does not work when using bazel `alias` targets, see https://github.com/ba
 | <a id="webpack_devserver-configure_devtool"></a>configure_devtool |  Configure `devtool` in the generated base webpack config.<br><br>`devtool` is set to `eval` if the Bazel compilation mode is `fastbuild`, `eval-source-map` if the Bazel compilation mode is `dbg`, otherwise it is left unset.<br><br>The configured value will be overridden if it is set in a supplied `webpack_config`.<br><br>See https://bazel.build/docs/user-manual#compilation-mode for more info on how to configure the compilation mode.   |  `True` |
 | <a id="webpack_devserver-args"></a>args |  Additional arguments to pass to webpack.<br><br>The `serve` command, the webpack config file (`--config`) and the mode (`--mode`) are automatically set.   |  `[]` |
 | <a id="webpack_devserver-data"></a>data |  Bundle and runtime dependencies of the program.<br><br>Should include the `webpack_bundle` rule `srcs` and `deps`.<br><br>The webpack config and entry_point[s] are automatically passed to data and should not be repeated.   |  `[]` |
-| <a id="webpack_devserver-mode"></a>mode |  The mode to pass to `--mode`.   |  `"development"` |
+| <a id="webpack_devserver-mode"></a>mode |  The mode to set in the generated base config.   |  `"development"` |
 | <a id="webpack_devserver-kwargs"></a>kwargs |  Additional arguments. See [js_run_devserver](https://github.com/aspect-build/rules_js/blob/main/docs/js_run_devserver.md).   |  none |
 
 

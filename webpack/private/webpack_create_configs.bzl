@@ -7,8 +7,6 @@ _config_attrs = {
     "entry_points": attr.label_keyed_string_dict(allow_files = True),
     "config_out": attr.output(),
     "output_dir": attr.bool(),
-    "configure_mode": attr.bool(),
-    "configure_devtool": attr.bool(),
     "_webpack_config_template": attr.label(
         allow_single_file = True,
         default = Label("//webpack/private:webpack.config.js.tmpl"),
@@ -42,42 +40,17 @@ def _relpath(ctx, file):
     return paths.relativize(file.short_path, ctx.attr.chdir)
 
 def _create_base_config_impl(ctx):
-    inputs = []
-
     # Desugar entrypoints
     entry_points = _desugar_entry_points(ctx.attr.entry_points).items()
     entry_mapping = {}
     for entry_point in entry_points:
         entry_mapping[entry_point[1]] = "./%s" % _relpath(ctx, entry_point[0])
 
-    # Change source-map and mode based on compilation mode
-    # See: https://docs.bazel.build/versions/main/user-manual.html#flag--compilation_mode
-    # See: https://webpack.js.org/configuration/devtool/#devtool
-    compilation_mode = ctx.var["COMPILATION_MODE"]
-
-    mode = None
-    if ctx.attr.configure_mode:
-        if compilation_mode == "opt":
-            mode = "production"
-        else:
-            mode = "development"
-
-    devtool = None
-    if ctx.attr.configure_devtool:
-        if compilation_mode == "fastbuild":
-            devtool = "eval"
-        elif compilation_mode == "dbg":
-            devtool = "eval-source-map"
-
-    # Expand webpack config for the entry mapping
-    inputs.append(config)
     ctx.actions.expand_template(
         template = ctx.file._webpack_config_template,
         output = ctx.outputs.config_out,
         substitutions = {
             "{{ENTRIES}}": "\n    entry: {},".format(json.encode(entry_mapping)) if entry_mapping else "",
-            "{{DEVTOOL}}": "\n    devtool: '{}',".format(devtool) if devtool else "",
-            "{{MODE}}": "\n    mode: '{}',".format(mode) if mode else "",
         },
     )
 
@@ -92,8 +65,6 @@ def webpack_create_configs(
         entry_point,
         entry_points,
         webpack_config,
-        configure_mode,
-        configure_devtool,
         chdir,
         entry_points_mandatory):
     """
@@ -106,8 +77,6 @@ def webpack_create_configs(
         entry_point: a single entry
         entry_points: multiple entries
         webpack_config: a custom webpack config file
-        configure_mode: configure `mode` in the generated base webpack config
-        configure_devtool: configure `devtool` in the generated base webpack config
         chdir: the dir webpack is run in
         entry_points_mandatory: whether or not entry points must be specified
 
@@ -125,8 +94,6 @@ def webpack_create_configs(
         name = "_%s_config" % name,
         config_out = default_config,
         entry_points = {entry_point: name} if entry_point else entry_points,
-        configure_mode = configure_mode,
-        configure_devtool = configure_devtool,
         chdir = chdir,
         tags = ["manual"],
     )
