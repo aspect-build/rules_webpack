@@ -392,7 +392,7 @@ def webpack_bundle(
         name = webpack_binary_target,
         node_modules = node_modules,
         additional_packages = ["webpack-cli"],
-        additional_data = [] if use_execroot_entry_point else webpack_configs,
+        data = [] if use_execroot_entry_point else webpack_configs,
         fixed_args = binary_args,
     )
 

@@ -7,7 +7,7 @@ def webpack_binary(
         name,
         node_modules,
         additional_packages,
-        additional_data = [],
+        data = [],
         fixed_args = []):
     """Create a webpack binary target from linked node_modules in the user's workspace.
 
@@ -17,7 +17,7 @@ def webpack_binary(
         name: Unique name for the binary target
         node_modules: Label pointing to the linked node_modules tree where webpack is linked, e.g. `//:node_modules`.
         additional_packages: list of additional packages required. For example ["webpack-cli", "webpack-dev-server"]
-        additional_data: additional data for the binary
+        data: data dependencies for the binary
         fixed_args: arguments that will be baked into the binary
     """
 
@@ -27,13 +27,13 @@ def webpack_binary(
         path = "bin/webpack.js",
     )
 
-    data = ["{}/webpack".format(node_modules)]
+    packages = ["{}/webpack".format(node_modules)]
     for p in additional_packages:
-        data.append("{}/{}".format(node_modules, p))
+        packages.append("{}/{}".format(node_modules, p))
 
     js_binary(
         name = name,
-        data = data + additional_data,
+        data = data + packages,
         entry_point = ":{}_entrypoint".format(name),
         fixed_args = fixed_args,
         visibility = ["//visibility:public"],
