@@ -19,6 +19,9 @@ class WebpackWorker extends WebpackCLI {
   /** @type {import("@bazel/worker").Inputs | null} */
   previousInputs = null
 
+  /** @type {{[k: string]: unknown} | null} */
+  options = null
+
   /** @type {Function | null} */
   resolve = null
   /** @type {Function | null} */
@@ -67,16 +70,27 @@ class WebpackWorker extends WebpackCLI {
       )
     }
     this.compiler = null
+    this.options = null
     this.previousInputs = null
   }
 
   async createCompiler(options) {
+    if (
+      this.options != null &&
+      JSON.stringify(options) != JSON.stringify(this.options)
+    ) {
+      console.error(
+        `[${MNEMONIC}] options have changed. discarding webpack cache.`
+      )
+      await this.teardown()
+    }
     const cb = (err, stats) => this.callback(err, stats)
     if (this.compiler) {
       this.compiler.run(cb)
     } else {
       console.error(options)
       this.compiler = await super.createCompiler(options, cb)
+      this.options = options
 
       // The output directory will be cleaned between runs, however webpack assumes the
       // output directory will not be modified and caches the file system state.
@@ -120,7 +134,17 @@ class WebpackWorker extends WebpackCLI {
   }
 }
 
-const worker = new WebpackWorker()
+/** @type {Map<string, WebpackWorker>} */
+const workers = new Map()
+
+function createOrGetWorker(args) {
+  const key = args[args.indexOf('--config') + 1]
+  if (!workers.has(key)) {
+    console.error(`New ${MNEMONIC} worker for ${key}`)
+    workers.set(key, new WebpackWorker())
+  }
+  return workers.get(key)
+}
 
 async function emit(request) {
   const inputs = Object.fromEntries(
@@ -131,6 +155,7 @@ async function emit(request) {
         : null,
     ])
   )
+  const worker = createOrGetWorker(request.arguments)
   const previousInputs = worker.previousInputs
   const bazelBin = process.cwd()
   const execRoot = path.resolve(bazelBin, '..', '..', '..')
