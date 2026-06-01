@@ -5,16 +5,16 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 module.exports = (_env, options) => {
   return {
     entry: {
-      styles: path.resolve(__dirname, 'src/component.js'),
+      styles: path.resolve(process.cwd(), 'src/component.js'),
     },
     output: {
-      path: path.resolve(__dirname, 'dist'),
+      path: path.resolve(process.cwd(), 'dist'),
       filename: '[name].bundle.js',
     },
     plugins: [
       new MiniCssExtractPlugin(),
       new HtmlWebpackPlugin({
-        template: path.resolve(__dirname + '/src/index.html'),
+        template: path.resolve(process.cwd() + '/src/index.html'),
       }),
     ],
     module: {

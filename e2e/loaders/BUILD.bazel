@@ -1,4 +1,4 @@
-load("@aspect_rules_js//js:defs.bzl", "js_run_devserver")
+load("@aspect_rules_js//js:defs.bzl", "js_library", "js_run_devserver")
 load("@aspect_rules_webpack//webpack:defs.bzl", "webpack_bundle")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@npm//:defs.bzl", "npm_link_all_packages")
@@ -10,6 +10,31 @@ http_server_bin.http_server_binary(
 
 npm_link_all_packages(name = "node_modules")
 
+js_library(
+    name = "webpack-css-config",
+    srcs = ["webpack.css.cjs"],
+    deps = [
+        ":node_modules/css-loader",
+        ":node_modules/mini-css-extract-plugin",
+    ],
+)
+
+js_library(
+    name = "webpack-ts-config",
+    srcs = ["webpack.config.cjs"],
+    deps = [":node_modules/ts-loader"],
+)
+
+js_library(
+    name = "webpack-html-config",
+    srcs = ["webpack.html.cjs"],
+    deps = [
+        ":node_modules/css-loader",
+        ":node_modules/html-webpack-plugin",
+        ":node_modules/mini-css-extract-plugin",
+    ],
+)
+
 webpack_bundle(
     name = "css",
     srcs = [
@@ -18,11 +43,7 @@ webpack_bundle(
     ],
     node_modules = "//:node_modules",
     output_dir = True,
-    webpack_config = ":webpack.css.cjs",
-    deps = [
-        ":node_modules/css-loader",
-        ":node_modules/mini-css-extract-plugin",
-    ],
+    webpack_config = ":webpack-css-config",
 )
 
 webpack_bundle(
@@ -33,11 +54,7 @@ webpack_bundle(
     ],
     node_modules = "//:node_modules",
     output_dir = True,
-    webpack_config = ":webpack.css.cjs",
-    deps = [
-        ":node_modules/css-loader",
-        ":node_modules/mini-css-extract-plugin",
-    ],
+    webpack_config = ":webpack-css-config",
 )
 
 webpack_bundle(
@@ -48,10 +65,7 @@ webpack_bundle(
     ],
     node_modules = "//:node_modules",
     output_dir = True,
-    webpack_config = ":webpack.config.cjs",
-    deps = [
-        ":node_modules/ts-loader",
-    ],
+    webpack_config = ":webpack-ts-config",
 )
 
 webpack_bundle(
@@ -62,10 +76,7 @@ webpack_bundle(
     ],
     node_modules = "//:node_modules",
     output_dir = True,
-    webpack_config = ":webpack.config.cjs",
-    deps = [
-        ":node_modules/ts-loader",
-    ],
+    webpack_config = ":webpack-ts-config",
 )
 
 # supports_worker + js_run_devserver
@@ -79,12 +90,7 @@ webpack_bundle(
     node_modules = "//:node_modules",
     output_dir = True,
     supports_workers = True,  # Required to reproduce https://github.com/aspect-build/rules_webpack/issues/126
-    webpack_config = ":webpack.html.cjs",
-    deps = [
-        ":node_modules/css-loader",
-        ":node_modules/html-webpack-plugin",
-        ":node_modules/mini-css-extract-plugin",
-    ],
+    webpack_config = ":webpack-html-config",
 )
 
 # Use a js_run_devserver to reproduce https://github.com/aspect-build/rules_webpack/issues/126

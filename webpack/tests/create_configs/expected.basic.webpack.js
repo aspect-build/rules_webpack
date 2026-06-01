@@ -1,3 +1,5 @@
+const path = require('path')
+
 module.exports = function () {
   const v4 = new Error().stack.includes('webpack-cli@4.')
 
@@ -27,6 +29,14 @@ module.exports = function () {
     uniqueName: process.env.BAZEL_WORKSPACE,
   }
 
+  // When the config is loaded from runfiles, __dirname is the runfiles package
+  // directory which has node_modules symlinks from npm_link_all_packages.
+  // Adding it to resolveLoader.modules lets webpack find loaders declared as
+  // deps of the webpack config js_library.
+  const resolveLoader = {
+    modules: [path.join(__dirname, 'node_modules'), 'node_modules'],
+  }
+
   // Set by the Bazel rule at action execution time so that the target
   // platform's compilation mode is reflected.
   const mode = process.env.WEBPACK_MODE
@@ -36,6 +46,7 @@ module.exports = function () {
     infrastructureLogging,
     optimization,
     output,
+    resolveLoader,
     ...(mode ? {mode} : {}),
     ...(devtool ? {devtool} : {}),
   }
