@@ -12,6 +12,7 @@ webpack_bundle(
         "MY_ENV": "$(execpath :index.js)",
     },
     node_modules = "//:node_modules",
+    use_execroot_entry_point = True,
     webpack_config = ":webpack.config.js",
 )
 
