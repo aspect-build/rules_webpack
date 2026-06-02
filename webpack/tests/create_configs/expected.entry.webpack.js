@@ -1,3 +1,5 @@
+const path = require('path')
+
 module.exports = function () {
   const v4 = new Error().stack.includes('webpack-cli@4.')
 
@@ -27,6 +29,13 @@ module.exports = function () {
     uniqueName: process.env.BAZEL_WORKSPACE,
   }
 
+  // When use_execroot_entry_point is False, the config files and their dependencies will live in
+  // the runfiles directory. Let's add __dirname to the search path to ensure that we can correctly
+  // resolve loaders from there.
+  const resolveLoader = {
+    modules: [path.join(__dirname, 'node_modules'), 'node_modules'],
+  }
+
   // Set by the Bazel rule at action execution time so that the target
   // platform's compilation mode is reflected.
   const mode = process.env.WEBPACK_MODE
@@ -36,6 +45,7 @@ module.exports = function () {
     infrastructureLogging,
     optimization,
     output,
+    resolveLoader,
     ...(mode ? {mode} : {}),
     ...(devtool ? {devtool} : {}),
     entry: {"entry":"./webpack/tests/create_configs/entry.js"},

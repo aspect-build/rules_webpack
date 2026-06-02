@@ -13,6 +13,14 @@ const path = require('path')
 const WebpackCLI = require('webpack-cli')
 const MNEMONIC = 'Webpack'
 
+// Fixed args baked in via js_binary fixed_args (e.g. --config, --merge).
+// In worker mode:     process.argv = [node, script, ...fixed_args, --persistent_worker]
+// In non-worker mode: process.argv = [node, script, ...fixed_args, @params_file]
+// Strip the Bazel-added trailing arg so only the webpack args remain.
+const FIXED_ARGS = process.argv
+  .slice(2)
+  .filter(arg => arg !== '--persistent_worker' && !arg.startsWith('@'))
+
 class WebpackWorker extends WebpackCLI {
   /** @type {import("webpack").Compiler | null} */
   compiler = null
@@ -231,7 +239,7 @@ async function emit(request) {
 
     worker.resolve = resolve
     worker.reject = reject
-    worker.run([process.argv[0], process.argv[1], ...request.arguments])
+    worker.run([process.argv[0], process.argv[1], ...FIXED_ARGS, ...request.arguments])
   })
 }
 
@@ -250,7 +258,7 @@ function emitOnce() {
       --strategy=${MNEMONIC}=worker`
   )
   const args = getArgsFromParamFile()
-  new WebpackCLI().run([process.argv[0], process.argv[1], ...args])
+  new WebpackCLI().run([process.argv[0], process.argv[1], ...FIXED_ARGS, ...args])
 }
 
 function main() {

@@ -1,0 +1,59 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@bazel_lib//lib:transitions.bzl", "platform_transition_filegroup")
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("//webpack:defs.bzl", "webpack_bundle")
+
+# Verify that webpack_bundle builds correctly when the target platform differs
+# from the exec platform. For this to work, we need to set
+# use_execroot_entry_point = False. Otherwise, webpack_bundle will build the
+# Webpack binary and configs for the target platform.
+
+js_library(
+    name = "webpack_config",
+    srcs = ["webpack.config.js"],
+    deps = ["//webpack/tests:node_modules/sharp"],
+)
+
+webpack_bundle(
+    name = "bundle",
+    entry_point = "index.js",
+    node_modules = "//:node_modules",
+    use_execroot_entry_point = False,
+    webpack_config = ":webpack_config",
+)
+
+platform(
+    name = "linux_x86_64",
+    constraint_values = [
+        "@platforms//os:linux",
+        "@platforms//cpu:x86_64",
+    ],
+)
+
+platform(
+    name = "macos_arm64",
+    constraint_values = [
+        "@platforms//os:macos",
+        "@platforms//cpu:arm64",
+    ],
+)
+
+platform_transition_filegroup(
+    name = "bundle_targeting_linux",
+    srcs = [":bundle"],
+    target_platform = ":linux_x86_64",
+)
+
+platform_transition_filegroup(
+    name = "bundle_targeting_macos",
+    srcs = [":bundle"],
+    target_platform = ":macos_arm64",
+)
+
+build_test(
+    name = "test",
+    targets = [
+        ":bundle_targeting_linux",
+        ":bundle_targeting_macos",
+    ],
+)

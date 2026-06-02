@@ -143,10 +143,9 @@ def _impl(ctx):
         executable = ctx.executable.webpack_worker_exec_cfg
         execution_requirements["supports-workers"] = str(int(ctx.attr.supports_workers))
 
-        no_copy_bin_inputs.append(ctx.file._worker_js)
-
         path_to_execroot = ("/".join([".."] * len(ctx.label.package.split("/"))) if ctx.label.package else ".") + "/"
         if ctx.attr.use_execroot_entry_point:
+            no_copy_bin_inputs.append(ctx.file._worker_js)
             env["JS_BINARY__ALLOW_EXECROOT_ENTRY_POINT_WITH_NO_COPY_DATA_TO_BIN"] = "1"
             env["RULES_JS_WORKER"] = path_to_execroot + "../../../" + ctx.file._worker_js.path
         else:
@@ -370,14 +369,6 @@ def webpack_bundle(
         **kwargs: Additional arguments
     """
 
-    webpack_binary_target = "_{}_webpack_binary".format(name)
-
-    webpack_binary(
-        name = webpack_binary_target,
-        node_modules = node_modules,
-        additional_packages = ["webpack-cli"],
-    )
-
     webpack_configs = webpack_create_configs(
         name = name,
         entry_point = entry_point,
@@ -385,6 +376,27 @@ def webpack_bundle(
         webpack_config = webpack_config,
         chdir = chdir,
         entry_points_mandatory = not output_dir,
+    )
+
+    # When use_execroot_entry_point is False, we use Webpack configs in the
+    # runfiles, which requires baking the command-line arguments into the
+    # binary. Otherwise, we pass the configs to the _webpack_bundle rule and
+    # let it handle them.
+    configs_for_webpack_bundle_rule = webpack_configs if use_execroot_entry_point else []
+    binary_args = []
+    if not use_execroot_entry_point:
+        for config in webpack_configs:
+            binary_args.extend(["--config", "$$RUNFILES_DIR/$(rlocationpath %s)" % config])
+        if len(webpack_configs) > 1:
+            binary_args.append("--merge")
+
+    webpack_binary_target = "_{}_webpack_binary".format(name)
+    webpack_binary(
+        name = webpack_binary_target,
+        node_modules = node_modules,
+        additional_packages = ["webpack-cli"],
+        data = webpack_configs,
+        fixed_args = binary_args,
     )
 
     webpack_worker_binary_target = None
@@ -402,15 +414,16 @@ def webpack_bundle(
                 "{}/webpack-cli".format(node_modules),
                 "{}/webpack-dev-server".format(node_modules),
                 "@aspect_rules_js//js/private/worker:worker.js",
-            ],
+            ] + webpack_configs,
             copy_data_to_bin = False,
             entry_point = "_{}_webpack_worker.js".format(name),
+            fixed_args = binary_args,
             visibility = ["//visibility:public"],
         )
 
     _webpack_bundle(
         name = name,
-        webpack_configs = webpack_configs,
+        webpack_configs = configs_for_webpack_bundle_rule,
         srcs = srcs,
         args = args,
         deps = deps,
