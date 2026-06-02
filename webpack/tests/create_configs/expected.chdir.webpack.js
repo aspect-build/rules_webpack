@@ -29,10 +29,9 @@ module.exports = function () {
     uniqueName: process.env.BAZEL_WORKSPACE,
   }
 
-  // When the config is loaded from runfiles, __dirname is the runfiles package
-  // directory which has node_modules symlinks from npm_link_all_packages.
-  // Adding it to resolveLoader.modules lets webpack find loaders declared as
-  // deps of the webpack config js_library.
+  // When use_execroot_entry_point is False, the config files and their dependencies will live in
+  // the runfiles directory. Let's add __dirname to the search path to ensure that we can correctly
+  // resolve loaders from there.
   const resolveLoader = {
     modules: [path.join(__dirname, 'node_modules'), 'node_modules'],
   }
