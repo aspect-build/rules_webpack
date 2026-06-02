@@ -380,6 +380,10 @@ def webpack_bundle(
 
     # When use_execroot_entry_point is False, we include the configs in the
     # Webpack binary itself and bake in the associated command-line arguments.
+    # Otherwise, we pass the configs to the underlying _webpack_bundle rule and
+    # let it handle them.
+    configs_for_binary = [] if use_execroot_entry_point else webpack_configs
+    configs_for_webpack_bundle_rule = webpack_configs if use_execroot_entry_point else []
     binary_args = []
     if not use_execroot_entry_point:
         for config in webpack_configs:
@@ -392,7 +396,7 @@ def webpack_bundle(
         name = webpack_binary_target,
         node_modules = node_modules,
         additional_packages = ["webpack-cli"],
-        data = [] if use_execroot_entry_point else webpack_configs,
+        data = configs_for_binary,
         fixed_args = binary_args,
     )
 
@@ -411,7 +415,7 @@ def webpack_bundle(
                 "{}/webpack-cli".format(node_modules),
                 "{}/webpack-dev-server".format(node_modules),
                 "@aspect_rules_js//js/private/worker:worker.js",
-            ] + ([] if use_execroot_entry_point else webpack_configs),
+            ] + configs_for_binary,
             copy_data_to_bin = False,
             entry_point = "_{}_webpack_worker.js".format(name),
             fixed_args = binary_args,
@@ -420,7 +424,7 @@ def webpack_bundle(
 
     _webpack_bundle(
         name = name,
-        webpack_configs = webpack_configs if use_execroot_entry_point else [],
+        webpack_configs = configs_for_webpack_bundle_rule,
         srcs = srcs,
         args = args,
         deps = deps,
