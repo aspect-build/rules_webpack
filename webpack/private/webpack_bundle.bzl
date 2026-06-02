@@ -355,12 +355,11 @@ def webpack_bundle(
         use_execroot_entry_point: Use the `entry_point` script of the `webpack` `js_binary` that is in the execroot output tree instead of the copy that is in runfiles.
 
             When set, runfiles are hoisted to the target platform when this is configured and included as target
-            platform execroot inputs to the action.
-
-            Using the entry point script that is in the execroot output tree means that there will be no conflicting
-            runfiles `node_modules` in the node_modules resolution path which can confuse npm packages such as next and
-            react that don't like being resolved in multiple node_modules trees. This more closely emulates the
-            environment that tools such as Next.js see when they are run outside of Bazel.
+            platform execroot inputs to the action. The main advantage is that this results in the Webpack config files
+            being placed adjacent to where the outputs will go. However, a significant downside is that the configs and
+            their dependencies are technically built for the wrong platform--the target platform is generally not the
+            same as the exec platform, and may be radically different in some cases. We therefore recommend setting this
+            to False.
 
             If not set, the global default from the `//webpack:use_execroot_entry_point` build flag is used (which
             defaults to `True`). Set the flag with `--@aspect_rules_webpack//webpack:use_execroot_entry_point=False`
