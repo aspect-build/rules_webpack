@@ -45,7 +45,7 @@ jobs:
       - name: bazel test //...
         shell: bash
         run: |
-          bazel test \
+          bazel test -k \
             --test_tag_filters=-skip-on-bazel7 \
             --build_tag_filters=-skip-on-bazel7 \
             //...
