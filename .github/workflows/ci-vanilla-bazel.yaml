@@ -28,7 +28,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
-        working-directory: e2e/smoke
+        working-directory: .
     strategy:
       fail-fast: false
       matrix:
