@@ -386,7 +386,7 @@ def webpack_bundle(
     binary_args = []
     if not use_execroot_entry_point:
         for config in webpack_configs:
-            binary_args.extend(["--config", "$$RUNFILES_DIR/$(rlocationpath %s)" % config])
+            binary_args.extend(["--config", "$(rlocation %s)" % config])
         if len(webpack_configs) > 1:
             binary_args.append("--merge")
 
