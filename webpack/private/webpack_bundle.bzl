@@ -361,9 +361,9 @@ def webpack_bundle(
             same as the exec platform, and may be radically different in some cases. We therefore recommend setting this
             to False.
 
-            If not set, the global default from the `//webpack:use_execroot_entry_point` build flag is used (which
-            defaults to `True`). Set the flag with `--@aspect_rules_webpack//webpack:use_execroot_entry_point=False`
-            to change the default for all targets in the build.
+            If not set, the global default from the `@aspect_rules_js//js:use_execroot_entry_point` build flag is used
+            (which defaults to `True`). Set the flag with
+            `--@aspect_rules_js//js:use_execroot_entry_point=False` to change the default for all targets in the build.
 
         supports_workers: Experimental! Use only with caution.
 
