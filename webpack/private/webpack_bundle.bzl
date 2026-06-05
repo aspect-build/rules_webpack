@@ -267,7 +267,7 @@ def webpack_bundle(
         webpack_config = None,
         configure_mode = True,
         configure_devtool = True,
-        use_execroot_entry_point = True,
+        use_execroot_entry_point = None,
         supports_workers = False,
         **kwargs):
     """Runs the webpack-cli under bazel
@@ -355,12 +355,15 @@ def webpack_bundle(
         use_execroot_entry_point: Use the `entry_point` script of the `webpack` `js_binary` that is in the execroot output tree instead of the copy that is in runfiles.
 
             When set, runfiles are hoisted to the target platform when this is configured and included as target
-            platform execroot inputs to the action.
+            platform execroot inputs to the action. The main advantage is that this results in the Webpack config files
+            being placed adjacent to where the outputs will go. However, a significant downside is that the configs and
+            their dependencies are technically built for the wrong platform--the target platform is generally not the
+            same as the exec platform, and may be radically different in some cases. We therefore recommend setting this
+            to False.
 
-            Using the entry point script that is in the execroot output tree means that there will be no conflicting
-            runfiles `node_modules` in the node_modules resolution path which can confuse npm packages such as next and
-            react that don't like being resolved in multiple node_modules trees. This more closely emulates the
-            environment that tools such as Next.js see when they are run outside of Bazel.
+            If not set, the global default from the `@aspect_rules_js//js:use_execroot_entry_point` build flag is used.
+            Set `--@aspect_rules_js//js:use_execroot_entry_point=False` to turn this off by default for all targets in
+            the build.
 
         supports_workers: Experimental! Use only with caution.
 
@@ -378,17 +381,30 @@ def webpack_bundle(
         entry_points_mandatory = not output_dir,
     )
 
-    # When use_execroot_entry_point is False, we use Webpack configs in the
+    # When use_execroot_entry_point is disabled, we use Webpack configs in the
     # runfiles, which requires baking the command-line arguments into the
     # binary. Otherwise, we pass the configs to the _webpack_bundle rule and
     # let it handle them.
-    configs_for_webpack_bundle_rule = webpack_configs if use_execroot_entry_point else []
-    binary_args = []
-    if not use_execroot_entry_point:
-        for config in webpack_configs:
-            binary_args.extend(["--config", "$$RUNFILES_DIR/$(rlocationpath %s)" % config])
-        if len(webpack_configs) > 1:
-            binary_args.append("--merge")
+    binary_args_runfiles = []
+    for config in webpack_configs:
+        binary_args_runfiles.extend(["--config", "$$RUNFILES_DIR/$(rlocationpath %s)" % config])
+    if len(webpack_configs) > 1:
+        binary_args_runfiles.append("--merge")
+
+    _flag = "@aspect_rules_js//js:_use_execroot_entry_point_true"
+
+    if use_execroot_entry_point == None:
+        binary_args = select({_flag: [], "//conditions:default": binary_args_runfiles})
+        configs_for_webpack_bundle_rule = select({_flag: webpack_configs, "//conditions:default": []})
+        effective_use_execroot = select({_flag: True, "//conditions:default": False})
+    elif use_execroot_entry_point:
+        binary_args = []
+        configs_for_webpack_bundle_rule = webpack_configs
+        effective_use_execroot = True
+    else:
+        binary_args = binary_args_runfiles
+        configs_for_webpack_bundle_rule = []
+        effective_use_execroot = False
 
     webpack_binary_target = "_{}_webpack_binary".format(name)
     webpack_binary(
@@ -438,7 +454,7 @@ def webpack_bundle(
         webpack_target_cfg = webpack_binary_target,
         webpack_worker_exec_cfg = webpack_worker_binary_target,
         webpack_worker_target_cfg = webpack_worker_binary_target,
-        use_execroot_entry_point = use_execroot_entry_point,
+        use_execroot_entry_point = effective_use_execroot,
         supports_workers = supports_workers,
         **kwargs
     )
