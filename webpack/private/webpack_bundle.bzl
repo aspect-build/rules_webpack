@@ -391,7 +391,7 @@ def webpack_bundle(
     if len(webpack_configs) > 1:
         binary_args_runfiles.append("--merge")
 
-    _flag = Label("//webpack:use_execroot_entry_point_setting")
+    _flag = "@aspect_rules_js//js:_use_execroot_entry_point_true"
 
     if use_execroot_entry_point == None:
         binary_args = select({_flag: [], "//conditions:default": binary_args_runfiles})
