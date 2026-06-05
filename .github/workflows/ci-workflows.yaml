@@ -49,7 +49,7 @@ jobs:
                 - { id: "bazel-7", version: "7.x", flags: "--bazel-flag=--test_tag_filters=-skip-on-bazel7" }
                 - { id: "bazel-8", version: "8.x", flags: "--bazel-flag=--test_tag_filters=-skip-on-bazel8" }
                 - { id: "bazel-9", version: "9.x", flags: "--bazel-flag=--test_tag_filters=-skip-on-bazel9" }
-                - { id: "bazel-9-no-execroot", version: "9.x", flags: "--bazel-flag=--test_tag_filters=-skip-on-bazel9 --bazel-flag=--@aspect_rules_webpack//webpack:use_execroot_entry_point=False" }
+                - { id: "bazel-9-no-execroot", version: "9.x", flags: "--bazel-flag=--test_tag_filters=-skip-on-bazel9 --bazel-flag=--@aspect_rules_js//js:use_execroot_entry_point=False" }
         env:
             USE_BAZEL_VERSION: ${{ matrix.bazel.version }}
         steps:
