@@ -365,6 +365,9 @@ def webpack_bundle(
             Set `--@aspect_rules_js//js:use_execroot_entry_point=False` to turn this off by default for all targets in
             the build.
 
+            See https://github.com/aspect-build/rules_js/blob/main/docs/use_execroot_entry_point.md for more
+            information.
+
         supports_workers: Experimental! Use only with caution.
 
             Allows you to enable the Bazel Worker strategy for this library.
