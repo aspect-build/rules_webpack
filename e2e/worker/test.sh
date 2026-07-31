@@ -12,9 +12,8 @@ exit_with_message() {
     exit 1
 }
 
-
 message "Case 1: Test passes"
-bazel test //... || exit_with_message "Case 1: Expected bazel test //... to pass"
+bazel test "$@" //... || exit_with_message "Case 1: Expected bazel test //... to pass"
 
 
 message "Case 2: Warmed up worker caughts changes"
@@ -24,9 +23,9 @@ cp ./expected.js_ ./expected.js_.bk
 trap "mv ./module.js.bk ./module.js && mv ./expected.js_.bk ./expected.js_" EXIT
 
 echo console.log\(\"$(date)\"\) > ./module.js
-bazel test //... && exit_with_message "Case 2: Expected bazel test //.. to fail because bundle should have differ after the change."
-bazel run //:write_bundle
-bazel test //...
+bazel test "$@" //... && exit_with_message "Case 2: Expected bazel test //.. to fail because bundle should have differ after the change."
+bazel run "$@" //:write_bundle
+bazel test "$@" //...
 
 
 message "All tests have passed"

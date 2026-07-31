@@ -46,10 +46,10 @@ jobs:
                 - { path: "e2e/smoke", slug: "e2e-smoke" }
                 - { path: "e2e/worker", slug: "e2e-worker" }
                 bazel:
-                - { id: "bazel-7", version: "7.x", flags: "--bazel-flag=--test_tag_filters=-skip-on-bazel7" }
-                - { id: "bazel-8", version: "8.x", flags: "--bazel-flag=--test_tag_filters=-skip-on-bazel8" }
-                - { id: "bazel-9", version: "9.x", flags: "--bazel-flag=--test_tag_filters=-skip-on-bazel9" }
-                - { id: "bazel-9-no-execroot", version: "9.x", flags: "--bazel-flag=--test_tag_filters=-skip-on-bazel9 --bazel-flag=--@aspect_rules_js//js:use_execroot_entry_point=False" }
+                - { id: "bazel-7", version: "7.x", flags: "--bazel-flag=--test_tag_filters=-skip-on-bazel7", test_sh_flags: "" }
+                - { id: "bazel-8", version: "8.x", flags: "--bazel-flag=--test_tag_filters=-skip-on-bazel8", test_sh_flags: "" }
+                - { id: "bazel-9", version: "9.x", flags: "--bazel-flag=--test_tag_filters=-skip-on-bazel9", test_sh_flags: "" }
+                - { id: "bazel-9-no-execroot", version: "9.x", flags: "--bazel-flag=--test_tag_filters=-skip-on-bazel9 --bazel-flag=--@aspect_rules_js//js:use_execroot_entry_point=False", test_sh_flags: "--@aspect_rules_js//js:use_execroot_entry_point=False" }
         env:
             USE_BAZEL_VERSION: ${{ matrix.bazel.version }}
         steps:
@@ -60,3 +60,11 @@ jobs:
             - name: Test
               working-directory: ${{ matrix.workspace.path }}
               run: aspect test --task-key=test-${{ matrix.workspace.slug }}-${{ matrix.bazel.id }} ${{ matrix.bazel.flags }} -- //...
+            - name: Optional ./test.sh
+              working-directory: ${{ matrix.workspace.path }}
+              run: |
+                  if [[ -f ./test.sh ]]; then
+                      ./test.sh ${{ matrix.bazel.test_sh_flags }}
+                  else
+                      echo "No test.sh in ${PWD}; skipping"
+                  fi
