@@ -1,6 +1,9 @@
 {
   "private": true,
   "devDependencies": {
+    "@rspack/cli": "^1.1.0",
+    "@rspack/core": "^1.1.0",
+    "@rspack/dev-server": "^1.1.0",
     "webpack": "5.106.2",
     "webpack-cli": "5.1.4",
     "webpack-dev-server": "5.2.3"
