@@ -38,9 +38,8 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest]
     env:
-      # Skip --config=aspect-cloud on Windows and fork PRs. The aspect CLI, which
-      # the config uses as its credential helper, does not support Windows, and
-      # fork PRs do not have access to secrets.
+      # Skip --config=aspect-cloud on Windows and fork PRs. The aspect CLI does
+      # not support Windows, and fork PRs do not have access to secrets.
       BAZEL_ASPECT_FLAGS: ${{ matrix.os != 'windows-latest' && secrets.ASPECT_OSS_API_TOKEN != '' && '--config=aspect-cloud' || '' }}
     steps:
       - uses: actions/checkout@v6
