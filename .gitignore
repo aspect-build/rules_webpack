@@ -5,6 +5,8 @@ node_modules/
 dist
 aspect-build-webpack-*
 
+**/.aspect/generated/
+
 .idea/
 .ijwb/
 .DS_Store
