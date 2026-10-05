@@ -52,6 +52,7 @@ jobs:
                 - { path: "e2e/loaders", slug: "e2e-loaders" }
                 - { path: "e2e/loaders_jslib", slug: "e2e-loaders_jslib" }
                 - { path: "e2e/path_mapping", slug: "e2e-path_mapping" }
+                - { path: "e2e/repo_mapping", slug: "e2e-repo_mapping" }
                 - { path: "e2e/smoke", slug: "e2e-smoke" }
                 - { path: "e2e/worker", slug: "e2e-worker" }
                 bazel:

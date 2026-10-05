@@ -408,7 +408,7 @@ def webpack_bundle(
     if len(webpack_configs) > 1:
         binary_args_runfiles.append("--merge")
 
-    _flag = "@aspect_rules_js//js:_use_execroot_entry_point_true"
+    _flag = Label("@aspect_rules_js//js:_use_execroot_entry_point_true")
 
     if use_execroot_entry_point == None:
         binary_args = select({_flag: [], "//conditions:default": binary_args_runfiles})
@@ -437,7 +437,7 @@ def webpack_bundle(
         webpack_worker_binary_target = "_{}_webpack_worker_binary".format(name)
         copy_file(
             name = "_{}_copy_webpack_worker".format(name),
-            src = "@aspect_rules_webpack//webpack/private:webpack_worker.js",
+            src = Label("//webpack/private:webpack_worker.js"),
             out = "_{}_webpack_worker.js".format(name),
         )
         js_binary(
@@ -446,7 +446,7 @@ def webpack_bundle(
                 "{}/webpack".format(node_modules),
                 "{}/webpack-cli".format(node_modules),
                 "{}/webpack-dev-server".format(node_modules),
-                "@aspect_rules_js//js/private/worker:worker.js",
+                Label("@aspect_rules_js//js/private/worker:worker.js"),
             ] + webpack_configs,
             copy_data_to_bin = False,
             entry_point = "_{}_webpack_worker.js".format(name),
