@@ -1,0 +1,14 @@
+load("@rules_webpack//webpack:defs.bzl", "webpack_bundle")
+
+webpack_bundle(
+    name = "bundle",
+    entry_point = "index.js",
+    node_modules = "@@//:node_modules",
+)
+
+webpack_bundle(
+    name = "bundle_worker",
+    entry_point = "index.js",
+    node_modules = "@@//:node_modules",
+    supports_workers = True,
+)

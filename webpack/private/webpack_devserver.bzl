@@ -134,8 +134,8 @@ def webpack_devserver(
         updated_env["WEBPACK_MODE"] = mode
 
     final_env = select({
-        "//webpack/private:compilation_mode_dbg": updated_env | {"WEBPACK_DEVTOOL": "eval-source-map"},
-        "//webpack/private:compilation_mode_opt": updated_env,
+        Label("//webpack/private:compilation_mode_dbg"): updated_env | {"WEBPACK_DEVTOOL": "eval-source-map"},
+        Label("//webpack/private:compilation_mode_opt"): updated_env,
         "//conditions:default": updated_env | {"WEBPACK_DEVTOOL": "eval"},
     }) if configure_devtool else updated_env
 
