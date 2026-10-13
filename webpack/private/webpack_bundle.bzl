@@ -95,12 +95,10 @@ def _impl(ctx):
     # See CLI documentation at https://webpack.js.org/api/cli/
     args = ctx.actions.args()
 
-    for config in ctx.files.webpack_configs:
-        args.add_all(["--config", _relpath(ctx, config)])
-        inputs.append(config)
-
-    if len(ctx.files.webpack_configs) > 1:
-        args.add("--merge")
+    # The first config is the generated one, which loads the user's config (if any) itself.
+    if ctx.files.webpack_configs:
+        args.add_all(["--config", _relpath(ctx, ctx.files.webpack_configs[0])])
+    inputs.extend(ctx.files.webpack_configs)
 
     if ctx.attr.output_dir:
         output_sources = [ctx.actions.declare_directory(ctx.attr.name)]
@@ -347,6 +345,10 @@ def webpack_bundle(
 
         webpack_config: Webpack configuration file.
 
+            It may export a config object, a function `(env, argv)` returning one, a promise, or an array of
+            these for a multi-compiler build. The Bazel defaults from the generated base config are merged into
+            each config, and values set in `webpack_config` take precedence.
+
             See https://webpack.js.org/configuration/
 
         configure_mode: Configure `mode` in the generated base webpack config.
@@ -402,11 +404,7 @@ def webpack_bundle(
     # runfiles, which requires baking the command-line arguments into the
     # binary. Otherwise, we pass the configs to the _webpack_bundle rule and
     # let it handle them.
-    binary_args_runfiles = []
-    for config in webpack_configs:
-        binary_args_runfiles.extend(["--config", "$$RUNFILES_DIR/$(rlocationpath %s)" % config])
-    if len(webpack_configs) > 1:
-        binary_args_runfiles.append("--merge")
+    binary_args_runfiles = ["--config", "$$RUNFILES_DIR/$(rlocationpath %s)" % webpack_configs[0]]
 
     _flag = Label("@aspect_rules_js//js:_use_execroot_entry_point_true")
 

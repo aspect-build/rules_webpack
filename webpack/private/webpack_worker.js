@@ -13,7 +13,7 @@ const path = require('path')
 const WebpackCLI = require('webpack-cli')
 const MNEMONIC = 'Webpack'
 
-// Fixed args baked in via js_binary fixed_args (e.g. --config, --merge).
+// Fixed args baked in via js_binary fixed_args (e.g. --config).
 // In worker mode:     process.argv = [node, script, ...fixed_args, --persistent_worker]
 // In non-worker mode: process.argv = [node, script, ...fixed_args, @params_file]
 // Strip the Bazel-added trailing arg so only the webpack args remain.
