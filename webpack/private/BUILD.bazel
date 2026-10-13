@@ -59,5 +59,8 @@ bzl_library(
     name = "webpack_create_configs",
     srcs = ["webpack_create_configs.bzl"],
     visibility = ["//webpack:__subpackages__"],
-    deps = ["@bazel_skylib//lib:paths"],
+    deps = [
+        "@bazel_lib//lib:paths",
+        "@bazel_skylib//lib:paths",
+    ],
 )

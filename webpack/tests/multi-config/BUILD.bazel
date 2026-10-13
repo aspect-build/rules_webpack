@@ -1,0 +1,44 @@
+load("@bazel_lib//lib:write_source_files.bzl", "write_source_files")
+load("//webpack:defs.bzl", "webpack_bundle")
+
+# Regression test for https://github.com/aspect-build/rules_webpack/issues/219:
+# a webpack_config exporting an array of configs is built as a multi-compiler
+# rather than having its configs merged into one.
+webpack_bundle(
+    name = "bundle",
+    srcs = [
+        "a.js",
+        "b.js",
+        "dep-a.js",
+        "dep-b.js",
+    ],
+    chdir = package_name(),
+    node_modules = "//:node_modules",
+    output_dir = True,
+    webpack_config = ":webpack.config.js",
+)
+
+# Selecting a single config with --config-name.
+webpack_bundle(
+    name = "bundle_b",
+    srcs = [
+        "b.js",
+        "dep-b.js",
+    ],
+    args = [
+        "--config-name",
+        "b",
+    ],
+    chdir = package_name(),
+    node_modules = "//:node_modules",
+    output_dir = True,
+    webpack_config = ":webpack.config.js",
+)
+
+write_source_files(
+    name = "write_bundles",
+    files = {
+        "expected": ":bundle",
+        "expected_b": ":bundle_b",
+    },
+)
