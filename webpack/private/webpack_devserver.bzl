@@ -51,6 +51,10 @@ def webpack_devserver(
 
         webpack_config: Webpack configuration file. See https://webpack.js.org/configuration/.
 
+            It may export a config object, a function `(env, argv)` returning one, a promise, or an array of
+            these for a multi-compiler build. The Bazel defaults from the generated base config are merged into
+            each config, and values set in `webpack_config` take precedence.
+
         configure_mode: Configure mode by passing the `--mode` flag.
 
             The mode will be set to the value of the `mode` argument.
@@ -113,13 +117,7 @@ def webpack_devserver(
         entry_points_mandatory = False,  # devserver rule doesn't have outputs so entry points are not needed to predict output files
     )
 
-    config_args = []
-    for config in webpack_configs:
-        config_args.append("--config")
-        config_args.append("{}$(rootpath {})".format(unwind_chdir_prefix, config))
-
-    if len(webpack_configs) > 1:
-        config_args.append("--merge")
+    config_args = ["--config", "{}$(rootpath {})".format(unwind_chdir_prefix, webpack_configs[0])]
 
     webpack_binary_target = "_{}_webpack_binary".format(name)
 

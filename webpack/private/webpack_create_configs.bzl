@@ -1,5 +1,6 @@
 """webpack_create_configs rule"""
 
+load("@bazel_lib//lib:paths.bzl", "relative_file")
 load("@bazel_skylib//lib:paths.bzl", "paths")
 
 _config_attrs = {
@@ -7,6 +8,7 @@ _config_attrs = {
     "entry_points": attr.label_keyed_string_dict(allow_files = True),
     "config_out": attr.output(),
     "output_dir": attr.bool(),
+    "webpack_config": attr.label(allow_files = True),
     "_webpack_config_template": attr.label(
         allow_single_file = True,
         default = Label("//webpack/private:webpack.config.js.tmpl"),
@@ -46,11 +48,22 @@ def _create_base_config_impl(ctx):
     for entry_point in entry_points:
         entry_mapping[entry_point[1]] = "./%s" % _relpath(ctx, entry_point[0])
 
+    user_config = "null"
+    if ctx.attr.webpack_config:
+        configs = [f for f in ctx.files.webpack_config if not f.basename.endswith(".d.ts")]
+        if len(configs) != 1:
+            fail("webpack_config must provide exactly one file, but %s provides %s" % (ctx.attr.webpack_config.label, len(configs)))
+
+        # The generated config loads the user config by a path relative to itself, which holds both in
+        # the output tree and in runfiles.
+        user_config = json.encode(relative_file(configs[0].short_path, ctx.outputs.config_out.short_path))
+
     ctx.actions.expand_template(
         template = ctx.file._webpack_config_template,
         output = ctx.outputs.config_out,
         substitutions = {
             "{{ENTRIES}}": "\n    entry: {},".format(json.encode(entry_mapping)) if entry_mapping else "",
+            "{{USER_CONFIG}}": user_config,
         },
     )
 
@@ -81,7 +94,9 @@ def webpack_create_configs(
         entry_points_mandatory: whether or not entry points must be specified
 
     Returns:
-        A list of config files to pass to webpack
+        A list of config files. Only the first, the generated config, is passed to webpack (`--config`).
+        It loads the user's config, if any, and merges the Bazel defaults into each config it exports;
+        the rest of the list is needed at runtime.
     """
 
     if entry_point and entry_points:
@@ -94,10 +109,11 @@ def webpack_create_configs(
         name = "_%s_config" % name,
         config_out = default_config,
         entry_points = {entry_point: name} if entry_point else entry_points,
+        webpack_config = webpack_config,
         chdir = chdir,
         tags = ["manual"],
     )
 
-    # NOTE: generated base config should always come first as it provides sensible defaults under bazel which
-    # users might want to override. Also, webpack_worker uses the first webpack config path as the worker key.
+    # NOTE: generated base config should always come first as it is the only config passed to webpack.
+    # Also, webpack_worker uses the first webpack config path as the worker key.
     return [default_config] + ([webpack_config] if webpack_config else [])
