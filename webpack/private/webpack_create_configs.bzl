@@ -41,6 +41,8 @@ def _relpath(ctx, file):
         fail("Expected {} to be of type File, not {}".format(file, type(file)))
     return paths.relativize(file.short_path, ctx.attr.chdir)
 
+_NON_CONFIG_SUFFIXES = (".d.ts", ".d.cts", ".d.mts", ".map")
+
 def _create_base_config_impl(ctx):
     # Desugar entrypoints
     entry_points = _desugar_entry_points(ctx.attr.entry_points).items()
@@ -50,12 +52,20 @@ def _create_base_config_impl(ctx):
 
     user_config = "null"
     if ctx.attr.webpack_config:
-        configs = [f for f in ctx.files.webpack_config if not f.basename.endswith(".d.ts")]
+        # Ignore type declarations and source maps, e.g. from a ts_project.
+        configs = [
+            f
+            for f in ctx.files.webpack_config
+            if not f.basename.endswith(_NON_CONFIG_SUFFIXES)
+        ]
         if len(configs) != 1:
-            fail("webpack_config must provide exactly one file, but %s provides %s" % (ctx.attr.webpack_config.label, len(configs)))
+            fail("webpack_config must provide exactly one config file, but {} provides {}. Wrap the config file in a js_library whose deps provide any modules it requires.".format(
+                ctx.attr.webpack_config.label,
+                [f.short_path for f in configs],
+            ))
 
-        # The generated config loads the user config by a path relative to itself, which holds both in
-        # the output tree and in runfiles.
+        # The generated config loads the user config by a path relative to itself. This holds both in the
+        # output tree and in runfiles as long as the user config is in the main repository.
         user_config = json.encode(relative_file(configs[0].short_path, ctx.outputs.config_out.short_path))
 
     ctx.actions.expand_template(

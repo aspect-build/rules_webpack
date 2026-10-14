@@ -1,4 +1,5 @@
 const path = require('path')
+const {createRequire} = require('module')
 const {pathToFileURL} = require('url')
 
 // Path to the user-supplied webpack config, relative to this file, or null if
@@ -89,30 +90,93 @@ function merge(base, user) {
   return result
 }
 
-async function loadUserConfig(configPath) {
-  if (!configPath.endsWith('.mjs')) {
+// Returns a `require` that resolves modules from webpack-cli's location, as the
+// packages it uses (e.g. interpret, rechoir) are not necessarily resolvable
+// from here. webpack-cli is always loaded, since it is what loads this config.
+function webpackCliRequire() {
+  const cliPath = Object.keys(require.cache).find((p) =>
+    /[\\/]webpack-cli[\\/]lib[\\/]webpack-cli\.js$/.test(p)
+  )
+  return cliPath ? createRequire(cliPath) : require
+}
+
+// Registers a loader (e.g. ts-node) for config files that Node can't load
+// natively, such as .ts, the same way webpack-cli does for `--config`.
+function registerInterpreter(configPath, argv) {
+  if (argv && argv.disableInterpret) {
+    return
+  }
+  const cliRequire = webpackCliRequire()
+  const interpret = cliRequire('interpret')
+  const ext = path.extname(configPath).toLowerCase()
+  if (ext in interpret.jsVariants || ext === '.cts') {
+    // Throws a helpful error listing the packages to install if no loader is
+    // available.
+    cliRequire('rechoir').prepare(interpret.extensions, configPath)
+  }
+}
+
+// Loads the user config the same way webpack-cli loads a `--config` file.
+async function loadUserConfig(configPath, argv) {
+  const ext = path.extname(configPath).toLowerCase()
+  if (!['.js', '.cjs', '.mjs'].includes(ext)) {
+    registerInterpreter(configPath, argv)
+  }
+  let config
+  if (ext !== '.mjs' && ext !== '.mts') {
     // Drop any cached copy so that a long-lived process, such as a persistent
     // worker, picks up changes to the config.
     delete require.cache[require.resolve(configPath)]
     try {
-      return require(configPath)
+      config = require(configPath)
     } catch (e) {
-      if (e.code !== 'ERR_REQUIRE_ESM') {
+      if (e.code !== 'ERR_REQUIRE_ESM' || ext === '.cjs' || ext === '.cts') {
         throw e
       }
     }
   }
-  const mod = await import(pathToFileURL(configPath).href)
-  return mod.default !== undefined ? mod.default : mod
+  if (config === undefined) {
+    config = (await import(pathToFileURL(configPath).href)).default
+  } else if (config && typeof config === 'object' && 'default' in config) {
+    // Transpiled ESM (`exports.default = ...`) or an ES module loaded via
+    // require().
+    config = config.default
+  }
+  return config
 }
 
 // Resolves a config the same way webpack-cli does: it may be a function of
 // (env, argv) and/or a promise.
-async function resolveConfig(config, env, argv) {
+async function resolveConfig(config, env, argv, configPath) {
   if (typeof config === 'function') {
     config = config(env, argv)
   }
-  return await config
+  config = await config
+  if (!config || typeof config !== 'object') {
+    throw new Error(
+      `Failed to load '${configPath}' config: expected an object or array of objects, got ${config}.`
+    )
+  }
+  return config
+}
+
+// Applies the Bazel defaults to a config from the user config file.
+function withDefaults(defaults, config, configPath) {
+  const result = merge(defaults, config)
+  // webpack-cli only adds the `--config` file (this one) to the filesystem
+  // cache's build dependencies, so add the user config too.
+  const cache = result.cache
+  if (cache && typeof cache === 'object' && cache.type === 'filesystem') {
+    const buildDependencies = cache.buildDependencies || {}
+    result.cache = {
+      ...cache,
+      buildDependencies: {
+        ...buildDependencies,
+        defaultConfig: [...(buildDependencies.defaultConfig || []), configPath],
+      },
+    }
+  }
+  return result
 }
 
 // Instead of passing the user config to webpack-cli alongside this one and
@@ -124,16 +188,18 @@ module.exports = async function (env, argv) {
   if (USER_CONFIG === null) {
     return bazelDefaults(v4)
   }
+  const configPath = path.join(__dirname, USER_CONFIG)
   const userConfig = await resolveConfig(
-    await loadUserConfig(path.join(__dirname, USER_CONFIG)),
+    await loadUserConfig(configPath, argv),
     env,
-    argv
+    argv,
+    configPath
   )
   if (Array.isArray(userConfig)) {
     const configs = await Promise.all(
-      userConfig.map((config) => resolveConfig(config, env, argv))
+      userConfig.map((config) => resolveConfig(config, env, argv, configPath))
     )
-    return configs.map((config) => merge(bazelDefaults(v4), config))
+    return configs.map((config) => withDefaults(bazelDefaults(v4), config, configPath))
   }
-  return merge(bazelDefaults(v4), userConfig)
+  return withDefaults(bazelDefaults(v4), userConfig, configPath)
 }
