@@ -104,9 +104,10 @@ def webpack_create_configs(
         entry_points_mandatory: whether or not entry points must be specified
 
     Returns:
-        A list of config files. Only the first, the generated config, is passed to webpack (`--config`).
-        It loads the user's config, if any, and merges the Bazel defaults into each config it exports;
-        the rest of the list is needed at runtime.
+        A struct with:
+          config: the generated config to pass to webpack (`--config`). It loads the user's config, if
+            any, and merges the Bazel defaults into each config it exports.
+          files: all config files needed at runtime, starting with `config`.
     """
 
     if entry_point and entry_points:
@@ -124,6 +125,7 @@ def webpack_create_configs(
         tags = ["manual"],
     )
 
-    # NOTE: generated base config should always come first as it is the only config passed to webpack.
-    # Also, webpack_worker uses the first webpack config path as the worker key.
-    return [default_config] + ([webpack_config] if webpack_config else [])
+    return struct(
+        config = default_config,
+        files = [default_config] + ([webpack_config] if webpack_config else []),
+    )

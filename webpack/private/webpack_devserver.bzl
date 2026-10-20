@@ -117,7 +117,7 @@ def webpack_devserver(
         entry_points_mandatory = False,  # devserver rule doesn't have outputs so entry points are not needed to predict output files
     )
 
-    config_args = ["--config", "{}$(rootpath {})".format(unwind_chdir_prefix, webpack_configs[0])]
+    config_args = ["--config", "{}$(rootpath {})".format(unwind_chdir_prefix, webpack_configs.config)]
 
     webpack_binary_target = "_{}_webpack_binary".format(name)
 
@@ -141,7 +141,7 @@ def webpack_devserver(
         name = name,
         tool = webpack_binary_target,
         args = ["serve"] + config_args + (["--mode", mode] if configure_mode else []) + args,
-        data = data + webpack_configs + ([entry_point] if entry_point else []) + entry_points.keys(),
+        data = data + webpack_configs.files + ([entry_point] if entry_point else []) + entry_points.keys(),
         chdir = chdir,
         env = final_env,
         **kwargs
