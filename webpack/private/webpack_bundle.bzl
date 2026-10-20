@@ -95,7 +95,8 @@ def _impl(ctx):
     # See CLI documentation at https://webpack.js.org/api/cli/
     args = ctx.actions.args()
 
-    # The first config is the generated one, which loads the user's config (if any) itself.
+    # The first config is the generated one, which loads the user's config (if any) itself. It is
+    # also what webpack_worker uses as the worker key.
     if ctx.files.webpack_configs:
         args.add_all(["--config", _relpath(ctx, ctx.files.webpack_configs[0])])
     inputs.extend(ctx.files.webpack_configs)
@@ -404,17 +405,17 @@ def webpack_bundle(
     # runfiles, which requires baking the command-line arguments into the
     # binary. Otherwise, we pass the configs to the _webpack_bundle rule and
     # let it handle them.
-    binary_args_runfiles = ["--config", "$$RUNFILES_DIR/$(rlocationpath %s)" % webpack_configs[0]]
+    binary_args_runfiles = ["--config", "$$RUNFILES_DIR/$(rlocationpath %s)" % webpack_configs.config]
 
     _flag = Label("@aspect_rules_js//js:_use_execroot_entry_point_true")
 
     if use_execroot_entry_point == None:
         binary_args = select({_flag: [], "//conditions:default": binary_args_runfiles})
-        configs_for_webpack_bundle_rule = select({_flag: webpack_configs, "//conditions:default": []})
+        configs_for_webpack_bundle_rule = select({_flag: webpack_configs.files, "//conditions:default": []})
         effective_use_execroot = select({_flag: True, "//conditions:default": False})
     elif use_execroot_entry_point:
         binary_args = []
-        configs_for_webpack_bundle_rule = webpack_configs
+        configs_for_webpack_bundle_rule = webpack_configs.files
         effective_use_execroot = True
     else:
         binary_args = binary_args_runfiles
@@ -426,7 +427,7 @@ def webpack_bundle(
         name = webpack_binary_target,
         node_modules = node_modules,
         additional_packages = ["webpack-cli"],
-        data = webpack_configs,
+        data = webpack_configs.files,
         fixed_args = binary_args,
     )
 
@@ -445,7 +446,7 @@ def webpack_bundle(
                 "{}/webpack-cli".format(node_modules),
                 "{}/webpack-dev-server".format(node_modules),
                 Label("@aspect_rules_js//js/private/worker:worker.js"),
-            ] + webpack_configs,
+            ] + webpack_configs.files,
             copy_data_to_bin = False,
             entry_point = "_{}_webpack_worker.js".format(name),
             fixed_args = binary_args,
