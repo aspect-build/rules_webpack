@@ -348,7 +348,9 @@ def webpack_bundle(
 
             It may export a config object, a function `(env, argv)` returning one, a promise, or an array of
             these for a multi-compiler build. The Bazel defaults from the generated base config are merged into
-            each config, and values set in `webpack_config` take precedence.
+            each config with [webpack-merge](https://github.com/survivejs/webpack-merge): values set in
+            `webpack_config` take precedence, except that arrays (such as `resolveLoader.modules`) are concatenated
+            with the defaults first.
 
             See https://webpack.js.org/configuration/
 

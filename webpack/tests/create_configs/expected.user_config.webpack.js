@@ -77,13 +77,14 @@ function getWebpackCli() {
 }
 
 // Applies the Bazel defaults underneath a config from the user config file.
-function withDefaults(defaults, config, configPath) {
+// `configPaths` are the files the config was loaded from.
+function withDefaults(defaults, config, configPaths) {
   const {merge} = getWebpackCli()
   const result = merge(defaults, config)
   // webpack-cli only adds the `--config` file (this one) to the filesystem
-  // cache's build dependencies, so add the user config too.
+  // cache's build dependencies, so add the user config files too.
   if (result.cache?.type === 'filesystem') {
-    return merge(result, {cache: {buildDependencies: {defaultConfig: [configPath]}}})
+    return merge(result, {cache: {buildDependencies: {defaultConfig: configPaths}}})
   }
   return result
 }
@@ -97,16 +98,19 @@ module.exports = async function (env, argv) {
   if (USER_CONFIG === null) {
     return bazelDefaults(v4)
   }
+  // No need to evict the user config from the require cache: it is in the
+  // persistent worker's tool inputs, so changing it starts a new worker.
   const configPath = path.join(__dirname, USER_CONFIG)
-  // Drop any cached copy so that a long-lived process, such as a persistent
-  // worker, picks up changes to the config.
-  delete require.cache[require.resolve(configPath)]
   const {WebpackCLI} = getWebpackCli()
-  const {options} = await new WebpackCLI().loadConfig({
+  // `paths` maps each config to the files it was loaded from, including any
+  // configs it extends.
+  const {options, path: paths} = await new WebpackCLI().loadConfig({
     config: [configPath],
     argv,
     disableInterpret: argv?.disableInterpret,
   })
-  const configs = [].concat(options).map((config) => withDefaults(bazelDefaults(v4), config, configPath))
+  const configs = [].concat(options).map((config) =>
+    withDefaults(bazelDefaults(v4), config, [].concat(paths.get(config) || configPath))
+  )
   return Array.isArray(options) ? configs : configs[0]
 }
