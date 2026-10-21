@@ -50,9 +50,13 @@ _attrs = {
         executable = True,
         cfg = "target",
     ),
+    "webpack_config_entry": attr.label(
+        allow_single_file = True,
+        doc = "Internal use only: the generated config passed to webpack, which loads the user's config, if any",
+    ),
     "webpack_configs": attr.label_list(
         allow_files = True,
-        doc = "Internal use only",
+        doc = "Internal use only: all config files needed by webpack",
         providers = [JsInfo],
     ),
     "use_execroot_entry_point": attr.bool(
@@ -95,9 +99,8 @@ def _impl(ctx):
     # See CLI documentation at https://webpack.js.org/api/cli/
     args = ctx.actions.args()
 
-    # The first config is the generated one, which loads the user's config, if any.
-    if ctx.files.webpack_configs:
-        args.add_all(["--config", _relpath(ctx, ctx.files.webpack_configs[0])])
+    if ctx.file.webpack_config_entry:
+        args.add_all(["--config", _relpath(ctx, ctx.file.webpack_config_entry)])
     inputs.extend(ctx.files.webpack_configs)
 
     if ctx.attr.output_dir:
@@ -413,14 +416,17 @@ def webpack_bundle(
     if use_execroot_entry_point == None:
         binary_args = select({_flag: [], "//conditions:default": binary_args_runfiles})
         configs_for_webpack_bundle_rule = select({_flag: webpack_configs.files, "//conditions:default": []})
+        config_entry_for_webpack_bundle_rule = select({_flag: webpack_configs.config, "//conditions:default": None})
         effective_use_execroot = select({_flag: True, "//conditions:default": False})
     elif use_execroot_entry_point:
         binary_args = []
         configs_for_webpack_bundle_rule = webpack_configs.files
+        config_entry_for_webpack_bundle_rule = webpack_configs.config
         effective_use_execroot = True
     else:
         binary_args = binary_args_runfiles
         configs_for_webpack_bundle_rule = []
+        config_entry_for_webpack_bundle_rule = None
         effective_use_execroot = False
 
     webpack_binary_target = "_{}_webpack_binary".format(name)
@@ -456,6 +462,7 @@ def webpack_bundle(
 
     _webpack_bundle(
         name = name,
+        webpack_config_entry = config_entry_for_webpack_bundle_rule,
         webpack_configs = configs_for_webpack_bundle_rule,
         srcs = srcs,
         args = args,
