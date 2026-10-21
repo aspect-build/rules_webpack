@@ -58,17 +58,19 @@ function bazelDefaults(v4) {
   }
 }
 
-// The webpack-cli module that is loading this config, which is always loaded.
-// Its packages (e.g. webpack-merge) are not necessarily resolvable from here.
+// webpack-cli and webpack-merge, which it depends on. Neither is necessarily
+// resolvable from here (e.g. js_run_devserver copies this config to a temporary
+// directory), so resolve webpack-cli from the program's entry point, which
+// loads it: webpack's bin script or webpack_worker.js. webpack-merge is then
+// resolved from webpack-cli.
 let webpackCli
 function getWebpackCli() {
   if (!webpackCli) {
-    const cliPath = Object.keys(require.cache).find((p) =>
-      /[\\/]webpack-cli[\\/]lib[\\/]webpack-cli\.js$/.test(p)
-    )
-    const webpackMerge = createRequire(cliPath)('webpack-merge')
+    const mainRequire = createRequire(require.main.filename)
+    const cliRequire = createRequire(mainRequire.resolve('webpack-cli'))
+    const webpackMerge = cliRequire('webpack-merge')
     webpackCli = {
-      WebpackCLI: require.cache[cliPath].exports,
+      WebpackCLI: cliRequire('webpack-cli'),
       merge: webpackMerge.merge || webpackMerge.default || webpackMerge,
     }
   }
