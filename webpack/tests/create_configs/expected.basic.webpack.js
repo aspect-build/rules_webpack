@@ -81,13 +81,14 @@ function getWebpackCli() {
 // `configPaths` are the files the config was loaded from.
 function withDefaults(defaults, config, configPaths) {
   const {merge} = getWebpackCli()
-  const result = merge(defaults, config)
   // webpack-cli only adds the `--config` file (this one) to the filesystem
-  // cache's build dependencies, so add the user config files too.
-  if (result.cache?.type === 'filesystem') {
-    return merge(result, {cache: {buildDependencies: {defaultConfig: configPaths}}})
-  }
-  return result
+  // cache's build dependencies, so add the user config files too. The defaults
+  // never set `cache`, so checking the user config is enough.
+  const cacheDependencies =
+    config.cache?.type === 'filesystem'
+      ? [{cache: {buildDependencies: {defaultConfig: configPaths}}}]
+      : []
+  return merge(defaults, config, ...cacheDependencies)
 }
 
 // Loads the user config with webpack-cli, the same way it loads a `--config`
