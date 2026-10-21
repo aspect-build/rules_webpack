@@ -6,7 +6,6 @@ const {createRequire} = require('module')
 const USER_CONFIG = "config/webpack.config.js"
 
 function isWebpackCli4() {
-  // Must be called synchronously from webpack-cli so that its frames are on the stack.
   return new Error().stack.includes('webpack-cli@4.')
 }
 
@@ -98,8 +97,6 @@ module.exports = async function (env, argv) {
   if (USER_CONFIG === null) {
     return bazelDefaults(v4)
   }
-  // No need to evict the user config from the require cache: it is in the
-  // persistent worker's tool inputs, so changing it starts a new worker.
   const configPath = path.join(__dirname, USER_CONFIG)
   const {WebpackCLI} = getWebpackCli()
   // `paths` maps each config to the files it was loaded from, including any
