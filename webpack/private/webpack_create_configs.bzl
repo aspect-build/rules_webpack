@@ -52,7 +52,7 @@ def _create_base_config_impl(ctx):
 
     user_config = "null"
     if ctx.attr.webpack_config:
-        # Ignore type declarations, source maps and build info, e.g. from a ts_project.
+        # Ignore type declarations, source maps, and build info, e.g. from a ts_project.
         configs = [
             f
             for f in ctx.files.webpack_config

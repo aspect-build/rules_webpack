@@ -95,8 +95,7 @@ def _impl(ctx):
     # See CLI documentation at https://webpack.js.org/api/cli/
     args = ctx.actions.args()
 
-    # The first config is the generated one, which loads the user's config (if any) itself. It is
-    # also what webpack_worker uses as the worker key.
+    # The first config is the generated one, which loads the user's config, if any.
     if ctx.files.webpack_configs:
         args.add_all(["--config", _relpath(ctx, ctx.files.webpack_configs[0])])
     inputs.extend(ctx.files.webpack_configs)
