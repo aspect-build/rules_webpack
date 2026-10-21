@@ -78,20 +78,6 @@ function getWebpackCli() {
   return webpackCli
 }
 
-// Applies the Bazel defaults underneath a config from the user config file.
-// `configPaths` are the files the config was loaded from.
-function withDefaults(defaults, config, configPaths) {
-  const {merge} = getWebpackCli()
-  // webpack-cli only adds the `--config` file (this one) to the filesystem
-  // cache's build dependencies, so add the user config files too. The defaults
-  // never set `cache`, so checking the user config is enough.
-  const cacheDependencies =
-    config.cache?.type === 'filesystem'
-      ? [{cache: {buildDependencies: {defaultConfig: configPaths}}}]
-      : []
-  return merge(defaults, config, ...cacheDependencies)
-}
-
 // Loads the user config with webpack-cli, the same way it loads a `--config`
 // file (resolving functions, promises, ESM, `extends`, etc.), and merges the
 // Bazel defaults into each of its configs, so that multi-compiler configs
@@ -102,16 +88,12 @@ module.exports = async function (env, argv) {
     return bazelDefaults(v4)
   }
   const configPath = path.join(__dirname, USER_CONFIG)
-  const {WebpackCLI} = getWebpackCli()
-  // `paths` maps each config to the files it was loaded from, including any
-  // configs it extends.
-  const {options, path: paths} = await new WebpackCLI().loadConfig({
+  const {WebpackCLI, merge} = getWebpackCli()
+  const {options} = await new WebpackCLI().loadConfig({
     config: [configPath],
     argv,
     disableInterpret: argv?.disableInterpret,
   })
-  const configs = [].concat(options).map((config) =>
-    withDefaults(bazelDefaults(v4), config, [].concat(paths.get(config) || configPath))
-  )
+  const configs = [].concat(options).map((config) => merge(bazelDefaults(v4), config))
   return Array.isArray(options) ? configs : configs[0]
 }
