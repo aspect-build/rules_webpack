@@ -41,8 +41,6 @@ def _relpath(ctx, file):
         fail("Expected {} to be of type File, not {}".format(file, type(file)))
     return paths.relativize(file.short_path, ctx.attr.chdir)
 
-_NON_CONFIG_SUFFIXES = (".d.ts", ".d.cts", ".d.mts", ".map", ".tsbuildinfo")
-
 def _create_base_config_impl(ctx):
     # Desugar entrypoints
     entry_points = _desugar_entry_points(ctx.attr.entry_points).items()
@@ -52,11 +50,11 @@ def _create_base_config_impl(ctx):
 
     user_config = "null"
     if ctx.attr.webpack_config:
-        # Ignore type declarations, source maps, and build info, e.g. from a ts_project.
+        # Ignore source maps, e.g. from a ts_project with source_map = True.
         configs = [
             f
             for f in ctx.files.webpack_config
-            if not f.basename.endswith(_NON_CONFIG_SUFFIXES)
+            if not f.basename.endswith(".map")
         ]
         if len(configs) != 1:
             fail("webpack_config must provide exactly one config file, but {} provides {}. Wrap the config file in a js_library whose deps provide any modules it requires.".format(
