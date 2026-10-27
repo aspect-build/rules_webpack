@@ -67,12 +67,16 @@ function bazelDefaults(v4) {
 let webpackCli
 function getWebpackCli() {
   if (!webpackCli) {
+    if (!require.main) {
+      throw new Error(
+        'Cannot find webpack-cli: the generated webpack config must be loaded by a CommonJS entry point'
+      )
+    }
     const mainRequire = createRequire(require.main.filename)
     const cliRequire = createRequire(mainRequire.resolve('webpack-cli'))
-    const webpackMerge = cliRequire('webpack-merge')
     webpackCli = {
       WebpackCLI: cliRequire('webpack-cli'),
-      merge: webpackMerge.merge || webpackMerge.default || webpackMerge,
+      merge: cliRequire('webpack-merge').merge,
     }
   }
   return webpackCli
