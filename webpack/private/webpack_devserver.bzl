@@ -51,6 +51,12 @@ def webpack_devserver(
 
         webpack_config: Webpack configuration file. See https://webpack.js.org/configuration/.
 
+            It may export a config object, a function `(env, argv)` returning one, a promise, or an array of
+            these for a multi-compiler build. The Bazel defaults from the generated base config are merged into
+            each config with [webpack-merge](https://github.com/survivejs/webpack-merge): values set in
+            `webpack_config` take precedence, except that arrays (such as `resolveLoader.modules`) are concatenated
+            with the defaults first.
+
         configure_mode: Configure mode by passing the `--mode` flag.
 
             The mode will be set to the value of the `mode` argument.
@@ -113,13 +119,7 @@ def webpack_devserver(
         entry_points_mandatory = False,  # devserver rule doesn't have outputs so entry points are not needed to predict output files
     )
 
-    config_args = []
-    for config in webpack_configs:
-        config_args.append("--config")
-        config_args.append("{}$(rootpath {})".format(unwind_chdir_prefix, config))
-
-    if len(webpack_configs) > 1:
-        config_args.append("--merge")
+    config_args = ["--config", "{}$(rootpath {})".format(unwind_chdir_prefix, webpack_configs.config)]
 
     webpack_binary_target = "_{}_webpack_binary".format(name)
 
@@ -143,7 +143,7 @@ def webpack_devserver(
         name = name,
         tool = webpack_binary_target,
         args = ["serve"] + config_args + (["--mode", mode] if configure_mode else []) + args,
-        data = data + webpack_configs + ([entry_point] if entry_point else []) + entry_points.keys(),
+        data = data + webpack_configs.files + ([entry_point] if entry_point else []) + entry_points.keys(),
         chdir = chdir,
         env = final_env,
         **kwargs
