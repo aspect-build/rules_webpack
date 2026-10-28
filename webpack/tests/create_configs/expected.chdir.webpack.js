@@ -59,11 +59,9 @@ function bazelDefaults(v4) {
   }
 }
 
-// webpack-cli and webpack-merge, which it depends on. Neither is necessarily
-// resolvable from here (e.g. js_run_devserver copies this config to a temporary
-// directory), so resolve webpack-cli from the program's entry point, which
-// loads it: webpack's bin script or webpack_worker.js. webpack-merge is then
-// resolved from webpack-cli.
+// Resolves webpack-cli and webpack-merge. Since this config may have been
+// copied to a temporary directory, we start the resolution from the program's
+// entry point.
 let webpackCli
 function getWebpackCli() {
   if (!webpackCli) {
