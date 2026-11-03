@@ -1,12 +1,20 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@npm//:defs.bzl", "npm_link_all_packages")
 
 npm_link_all_packages(name = "node_modules")
 
+js_library(
+    name = "webpack_config",
+    srcs = ["webpack.config.js"],
+    visibility = ["//visibility:public"],
+)
+
 build_test(
     name = "test",
     targets = [
-        "@no_rules_js//:_bundle_webpack_binary",
-        "@no_rules_js//:_bundle_worker_webpack_worker_binary",
+        "@no_rules_js//:bundle",
+        "@no_rules_js//:bundle_config",
+        "@no_rules_js//:bundle_worker",
     ],
 )
