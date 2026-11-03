@@ -1,0 +1,1 @@
+(()=>{"use strict";console.log("b","dep-b")})();

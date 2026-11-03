@@ -43,6 +43,15 @@ webpack_create_configs(
     webpack_config = None,
 )
 
+webpack_create_configs(
+    name = "user_config",
+    chdir = None,
+    entry_point = None,
+    entry_points = {},
+    entry_points_mandatory = False,
+    webpack_config = "config/webpack.config.js",
+)
+
 write_source_files(
     name = "tests",
     files = {
@@ -50,5 +59,6 @@ write_source_files(
         "expected.entry.webpack.js": "entry.webpack.config.cjs",
         "expected.entries.webpack.js": "entries.webpack.config.cjs",
         "expected.chdir.webpack.js": "chdir.webpack.config.cjs",
+        "expected.user_config.webpack.js": "user_config.webpack.config.cjs",
     },
 )

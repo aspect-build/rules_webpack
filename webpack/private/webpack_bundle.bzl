@@ -50,9 +50,13 @@ _attrs = {
         executable = True,
         cfg = "target",
     ),
+    "webpack_config_entry": attr.label(
+        allow_single_file = True,
+        doc = "Internal use only: the generated config passed to webpack, which loads the user's config, if any",
+    ),
     "webpack_configs": attr.label_list(
         allow_files = True,
-        doc = "Internal use only",
+        doc = "Internal use only: all config files needed by webpack",
         providers = [JsInfo],
     ),
     "use_execroot_entry_point": attr.bool(
@@ -95,12 +99,9 @@ def _impl(ctx):
     # See CLI documentation at https://webpack.js.org/api/cli/
     args = ctx.actions.args()
 
-    for config in ctx.files.webpack_configs:
-        args.add_all(["--config", _relpath(ctx, config)])
-        inputs.append(config)
-
-    if len(ctx.files.webpack_configs) > 1:
-        args.add("--merge")
+    if ctx.file.webpack_config_entry:
+        args.add_all(["--config", _relpath(ctx, ctx.file.webpack_config_entry)])
+    inputs.extend(ctx.files.webpack_configs)
 
     if ctx.attr.output_dir:
         output_sources = [ctx.actions.declare_directory(ctx.attr.name)]
@@ -347,6 +348,12 @@ def webpack_bundle(
 
         webpack_config: Webpack configuration file.
 
+            It may export a config object, a function `(env, argv)` returning one, a promise, or an array of
+            these for a multi-compiler build. The Bazel defaults from the generated base config are merged into
+            each config with [webpack-merge](https://github.com/survivejs/webpack-merge): values set in
+            `webpack_config` take precedence, except that arrays (such as `resolveLoader.modules`) are concatenated
+            with the defaults first.
+
             See https://webpack.js.org/configuration/
 
         configure_mode: Configure `mode` in the generated base webpack config.
@@ -402,25 +409,24 @@ def webpack_bundle(
     # runfiles, which requires baking the command-line arguments into the
     # binary. Otherwise, we pass the configs to the _webpack_bundle rule and
     # let it handle them.
-    binary_args_runfiles = []
-    for config in webpack_configs:
-        binary_args_runfiles.extend(["--config", "$$RUNFILES_DIR/$(rlocationpath %s)" % config])
-    if len(webpack_configs) > 1:
-        binary_args_runfiles.append("--merge")
+    binary_args_runfiles = ["--config", "$$RUNFILES_DIR/$(rlocationpath %s)" % webpack_configs.config]
 
     _flag = Label("@aspect_rules_js//js:_use_execroot_entry_point_true")
 
     if use_execroot_entry_point == None:
         binary_args = select({_flag: [], "//conditions:default": binary_args_runfiles})
-        configs_for_webpack_bundle_rule = select({_flag: webpack_configs, "//conditions:default": []})
+        configs_for_webpack_bundle_rule = select({_flag: webpack_configs.files, "//conditions:default": []})
+        config_entry_for_webpack_bundle_rule = select({_flag: webpack_configs.config, "//conditions:default": None})
         effective_use_execroot = select({_flag: True, "//conditions:default": False})
     elif use_execroot_entry_point:
         binary_args = []
-        configs_for_webpack_bundle_rule = webpack_configs
+        configs_for_webpack_bundle_rule = webpack_configs.files
+        config_entry_for_webpack_bundle_rule = webpack_configs.config
         effective_use_execroot = True
     else:
         binary_args = binary_args_runfiles
         configs_for_webpack_bundle_rule = []
+        config_entry_for_webpack_bundle_rule = None
         effective_use_execroot = False
 
     webpack_binary_target = "_{}_webpack_binary".format(name)
@@ -428,7 +434,7 @@ def webpack_bundle(
         name = webpack_binary_target,
         node_modules = node_modules,
         additional_packages = ["webpack-cli"],
-        data = webpack_configs,
+        data = webpack_configs.files,
         fixed_args = binary_args,
     )
 
@@ -447,7 +453,7 @@ def webpack_bundle(
                 "{}/webpack-cli".format(node_modules),
                 "{}/webpack-dev-server".format(node_modules),
                 Label("@aspect_rules_js//js/private/worker:worker.js"),
-            ] + webpack_configs,
+            ] + webpack_configs.files,
             copy_data_to_bin = False,
             entry_point = "_{}_webpack_worker.js".format(name),
             fixed_args = binary_args,
@@ -456,6 +462,7 @@ def webpack_bundle(
 
     _webpack_bundle(
         name = name,
+        webpack_config_entry = config_entry_for_webpack_bundle_rule,
         webpack_configs = configs_for_webpack_bundle_rule,
         srcs = srcs,
         args = args,

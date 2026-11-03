@@ -1,0 +1,79 @@
+load("@aspect_rules_js//js:defs.bzl", "js_library")
+load("@bazel_lib//lib:diff_test.bzl", "diff_test")
+load("@bazel_lib//lib:write_source_files.bzl", "write_source_files")
+load("//webpack:defs.bzl", "webpack_bundle")
+
+# Regression test for https://github.com/aspect-build/rules_webpack/issues/219:
+# a webpack_config exporting an array of configs is built as a multi-compiler
+# rather than having its configs merged into one.
+webpack_bundle(
+    name = "bundle",
+    srcs = [
+        "a.js",
+        "b.js",
+        "dep-a.js",
+        "dep-b.js",
+    ],
+    chdir = package_name(),
+    node_modules = "//:node_modules",
+    output_dir = True,
+    webpack_config = ":webpack.config.js",
+)
+
+# Selecting a single config with --config-name.
+webpack_bundle(
+    name = "bundle_b",
+    srcs = [
+        "b.js",
+        "dep-b.js",
+    ],
+    args = [
+        "--config-name",
+        "b",
+    ],
+    chdir = package_name(),
+    node_modules = "//:node_modules",
+    output_dir = True,
+    webpack_config = ":webpack.config.js",
+)
+
+# A config with a `default` export, as produced by transpiled ESM, builds the
+# same bundles.
+js_library(
+    name = "webpack_config_default_export",
+    srcs = ["webpack.config.default.cjs"],
+    deps = [":webpack_config"],
+)
+
+js_library(
+    name = "webpack_config",
+    srcs = ["webpack.config.js"],
+)
+
+webpack_bundle(
+    name = "bundle_default_export",
+    srcs = [
+        "a.js",
+        "b.js",
+        "dep-a.js",
+        "dep-b.js",
+    ],
+    chdir = package_name(),
+    node_modules = "//:node_modules",
+    output_dir = True,
+    webpack_config = ":webpack_config_default_export",
+)
+
+diff_test(
+    name = "default_export_matches",
+    file1 = ":bundle",
+    file2 = ":bundle_default_export",
+)
+
+write_source_files(
+    name = "write_bundles",
+    files = {
+        "expected": ":bundle",
+        "expected_b": ":bundle_b",
+    },
+)

@@ -1,8 +1,15 @@
 const path = require('path')
+const {createRequire} = require('module')
 
-module.exports = function () {
-  const v4 = new Error().stack.includes('webpack-cli@4.')
+// Path to the user-supplied webpack config, relative to this file, or null if
+// there is none.
+const USER_CONFIG = null
 
+function isWebpackCli4() {
+  return new Error().stack.includes('webpack-cli@4.')
+}
+
+function bazelDefaults(v4) {
   const infrastructureLogging = v4 ? {level: 'error'} : {
     colors: false,
     console: new console.Console(process.stderr, process.stderr),
@@ -50,4 +57,45 @@ module.exports = function () {
     ...(devtool ? {devtool} : {}),
     entry: {"entry":"./webpack/tests/create_configs/entry.js"},
   }
+}
+
+// Resolves webpack-cli and webpack-merge. Since this config may have been
+// copied to a temporary directory, we start the resolution from the program's
+// entry point.
+let webpackCli
+function getWebpackCli() {
+  if (!webpackCli) {
+    if (!require.main) {
+      throw new Error(
+        'Cannot find webpack-cli: the generated webpack config must be loaded by a CommonJS entry point'
+      )
+    }
+    const mainRequire = createRequire(require.main.filename)
+    const cliRequire = createRequire(mainRequire.resolve('webpack-cli'))
+    webpackCli = {
+      WebpackCLI: cliRequire('webpack-cli'),
+      merge: cliRequire('webpack-merge').merge,
+    }
+  }
+  return webpackCli
+}
+
+// Loads the user config with webpack-cli, the same way it loads a `--config`
+// file (resolving functions, promises, ESM, `extends`, etc.), and merges the
+// Bazel defaults into each of its configs, so that multi-compiler configs
+// (arrays) keep their configs separate.
+module.exports = async function (env, argv) {
+  const v4 = isWebpackCli4()
+  if (USER_CONFIG === null) {
+    return bazelDefaults(v4)
+  }
+  const configPath = path.join(__dirname, USER_CONFIG)
+  const {WebpackCLI, merge} = getWebpackCli()
+  const {options} = await new WebpackCLI().loadConfig({
+    config: [configPath],
+    argv,
+    disableInterpret: argv?.disableInterpret,
+  })
+  const configs = [].concat(options).map((config) => merge(bazelDefaults(v4), config))
+  return Array.isArray(options) ? configs : configs[0]
 }
