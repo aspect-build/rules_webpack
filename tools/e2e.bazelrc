@@ -3,7 +3,7 @@
 # %workspace% is still the workspace that invoked Bazel, so the paths below
 # assume the importing workspace sits two levels below the repository root.
 
-import %workspace%/../../.aspect/bazelrc
+try-import %workspace%/../../.aspect/bazelrc
 
 import %workspace%/../../tools/preset.bazelrc
 
